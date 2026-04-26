@@ -257,7 +257,10 @@ def get_db():
             database=DB_NAME,
             cursorclass=DictCursor,
             charset="utf8mb4",
-            autocommit=False
+            autocommit=False,
+            connect_timeout=5,
+            read_timeout=5,
+            write_timeout=5,
             )
         return conn
     except pymysql.err.OperationalError as exc:
@@ -271,6 +274,12 @@ def get_db():
                 ) from exc
             raise RuntimeError(
                 "MySQL authentication failed: check DB_USER/DB_PASSWORD (or MYSQL_USER/MYSQL_PASSWORD)."
+            ) from exc
+        if exc.args and exc.args[0] in {2002, 2003}:
+            raise RuntimeError(
+                f"MySQL connection failed for host {DB_HOST}:{DB_PORT}. "
+                "Use a reachable cloud MySQL host in Render environment variables; "
+                "localhost/127.0.0.1 only works on the same machine as MySQL."
             ) from exc
         raise
 
@@ -1341,6 +1350,7 @@ def startup() -> None:
     last_error: Exception | None = None
     for attempt in range(1, 4):
         try:
+            print(f"Starting database initialization against {DB_HOST}:{DB_PORT}", file=sys.stderr)
             init_db()
             return
         except pymysql.err.OperationalError as exc:
