@@ -116,12 +116,12 @@ const payload = await res.json();
 GitHub Pages can host the Admin dashboard UI, but it cannot run the Python/FastAPI server.
 
 Use this architecture:
-- Frontend: GitHub Pages (serves `Admin Page/static/index.html`)
+- Frontend: GitHub Pages (serves `static/index.html`)
 - Backend API: Render/Railway/Fly.io/VM (runs `app.py` + MySQL)
 
 ### 1) Deploy the backend API first
 1. Push this repo to GitHub.
-2. Deploy `Admin Page/app.py` as an ASGI app on your backend host.
+2. Deploy `app.py` as an ASGI app on your backend host.
 3. Start command example:
    ```bash
    uvicorn app:app --host 0.0.0.0 --port 10000
@@ -135,7 +135,7 @@ This repo includes workflow: `.github/workflows/admin-page-pages.yml`
 1. In GitHub repo Settings -> Pages:
    - Source: `GitHub Actions`
 2. Push to `main`.
-3. The workflow publishes `Admin Page/static`.
+3. The workflow publishes `static`.
 4. Your site URL will be like:
    - `https://<username>.github.io/<repo>/`
 
@@ -155,4 +155,14 @@ If needed, change API URL by re-opening with a different `?api=` value.
 ### 4) CORS/security notes
 - Current API uses `allow_origins=["*"]` for easy setup.
 - For production hardening, restrict `allow_origins` to your GitHub Pages domain.
+
+### 5) Render quick-start for app.py
+This repo also includes `render.yaml` for one-click backend setup on Render.
+
+1. In Render, click **New +** -> **Blueprint**.
+2. Connect this GitHub repo.
+3. Render detects `render.yaml` automatically.
+4. Fill required env vars (`DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, etc.).
+5. Deploy and copy the API URL.
+6. Open your GitHub Pages admin URL with `?api=<your-api-url>`.
 
