@@ -1,0 +1,2370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MuScanAI Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green-900: #20411f;
+      --green-700: #2f6d35;
+      --green-500: #3e8f43;
+      --green-100: #edf8ee;
+      --yellow-700: #8c6600;
+      --yellow-600: #a47600;
+      --yellow-200: #f7e8b0;
+      --white: #ffffff;
+      --text: #1d2f1f;
+      --muted: #6a786a;
+      --danger: #b42318;
+      --danger-soft: #fce8e6;
+      --ok: #0f7a2e;
+      --ok-soft: #e7f9ec;
+      --border: #dbe7d8;
+      --shadow: 0 16px 36px rgba(29, 47, 31, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Roboto", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: linear-gradient(140deg, #f8fcf5 0%, #edf6ea 45%, #fff9e8 100%);
+    }
+
+    .auth-gate {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .auth-card {
+      width: min(430px, 100%);
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .auth-title {
+      margin: 0;
+      font-size: 27px;
+      color: var(--green-900);
+    }
+
+    .auth-sub {
+      margin: 8px 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .layout {
+      min-height: 100vh;
+      display: none;
+      grid-template-columns: 245px 1fr;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #1d4120 0%, #2f6d35 100%);
+      color: #f1fdf2;
+      padding: 18px 14px;
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .brand {
+      margin: 8px 10px 16px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+    }
+
+    .brand-sub {
+      margin: 0 10px 20px;
+      font-size: 12px;
+      color: #c9e3c9;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav button {
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #ddf2dc;
+      border-radius: 12px;
+      padding: 11px 12px;
+      text-align: left;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .nav button.active {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+
+    .main {
+      padding: 18px;
+    }
+
+    .header {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: var(--green-900);
+    }
+
+    .header p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .status {
+      margin-bottom: 10px;
+      min-height: 22px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .status.ok {
+      background: var(--ok-soft);
+      color: var(--ok);
+      border-color: #b5ebc4;
+    }
+
+    .status.err {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border-color: #f8c8c3;
+    }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 17px;
+      color: var(--green-900);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar h3 {
+      width: 100%;
+      margin-bottom: 2px;
+    }
+
+    .toolbar-row {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-left {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      min-width: 220px;
+      flex: 1;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .toolbar-left input,
+    .toolbar-left select {
+      width: min(320px, 100%);
+    }
+
+    .toolbar-right {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .mitigation-controls {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .filter-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 170px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .rich-toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .rich-toolbar .btn-muted {
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    .instruction-editor {
+      width: 100%;
+      min-height: 220px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+      overflow: auto;
+    }
+
+    .instruction-editor:focus {
+      outline: 2px solid #9dd4a0;
+      border-color: #7bbf80;
+    }
+
+    .instruction-editor img.selected-editor-image {
+      outline: 2px solid #3e8f43;
+      outline-offset: 2px;
+      cursor: pointer;
+    }
+
+    .image-tools {
+      border: 1px solid var(--border);
+      background: #f8fcf5;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+      display: none;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .image-tools.open {
+      display: flex;
+    }
+
+    .image-tools .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 8px;
+    }
+
+    .image-tools label {
+      margin: 0;
+      font-size: 11px;
+      color: #607268;
+      font-weight: 700;
+    }
+
+    .image-tools input[type="range"] {
+      width: 120px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+
+    .image-tools .mini {
+      font-size: 11px;
+      min-width: 36px;
+      text-align: right;
+      color: #334155;
+      font-weight: 700;
+    }
+
+    .instruction-preview {
+      max-width: 460px;
+      max-height: 88px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .form-row { margin-bottom: 10px; }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: var(--green-700);
+    }
+
+    button:hover { filter: brightness(1.03); }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-yellow {
+      background: var(--yellow-600);
+      color: #fff;
+    }
+
+    .btn-muted {
+      background: #607268;
+      color: #fff;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--green-700);
+      border: 1px solid #9ec39f;
+    }
+
+    .toolbar-btn {
+      min-height: 38px;
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .icon-btn {
+      min-width: 36px;
+      height: 36px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .profile-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--border);
+      border: 2px solid var(--border);
+      object-fit: cover;
+      display: inline-block;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .image-thumbnail {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      object-fit: cover;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .image-thumbnail:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(29, 47, 31, 0.15);
+    }
+
+    .image-modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(18, 34, 18, 0.8);
+      z-index: 1000;
+    }
+
+    .image-modal.open { display: flex; }
+
+    .image-modal-content {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 12px;
+      max-width: min(90vw, 600px);
+      max-height: 90vh;
+      overflow: auto;
+      box-shadow: var(--shadow);
+    }
+
+    .image-modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      background: var(--danger);
+      color: white;
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-modal-close:hover {
+      filter: brightness(1.1);
+    }
+
+    .image-modal-img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      display: block;
+    }
+
+    .icon-edit {
+      background: #1d4ed8;
+      color: #fff;
+    }
+
+    .icon-delete {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .icon-send {
+      background: var(--yellow-600);
+      color: #fff;
+    }
+
+    .icon-add {
+      background: var(--green-700);
+      color: #fff;
+    }
+
+    .icon-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .help {
+      background: #f6fbf3;
+      border: 1px solid #c8e1c8;
+      color: #37633a;
+      border-radius: 10px;
+      font-size: 12px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+
+    .table th,
+    .table td {
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+      padding: 8px 6px;
+      font-size: 13px;
+    }
+
+    .table th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .chip {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      background: #f7faf8;
+    }
+
+    .small { color: var(--muted); font-size: 12px; }
+
+    .Functional { background: #e7f9eb; color: #14532d; }
+    .Mild { background: #fff8da; color: #7a4f01; }
+    .Moderate { background: #ffeccd; color: #8a4e00; }
+    .Severe { background: #fde3e3; color: #8a1d1d; }
+    .Farmer { background: #e6f7eb; color: #1c6330; }
+    .Researcher { background: #edf6ff; color: #1f4f8a; }
+    .Admin { background: #fff4d6; color: #835600; }
+    .Superadmin { background: #e8f9f1; color: #165f3b; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(18, 34, 18, 0.48);
+      z-index: 999;
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-card {
+      width: min(680px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .modal-head h3 { margin: 0; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { border-right: 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+      .nav { flex-direction: row; }
+      .header { flex-direction: column; align-items: flex-start; }
+      .header-right { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <div id="loginGate" class="auth-gate">
+    <div class="auth-card">
+      <h2 class="auth-title">MuScanAI Admin Login</h2>
+      <p class="auth-sub">Only Admin and Superadmin users can open the dashboard.</p>
+      <form id="adminLoginForm">
+        <div class="form-row">
+          <label for="adminContact">Admin mobile number</label>
+          <input id="adminContact" minlength="10" maxlength="15" required />
+        </div>
+        <div class="form-row">
+          <label for="adminPassword">Password</label>
+          <input id="adminPassword" type="password" minlength="8" required />
+        </div>
+        <div class="actions">
+          <button type="submit">Log In</button>
+        </div>
+      </form>
+      <div id="loginStatus" class="status"></div>
+    </div>
+  </div>
+
+  <div id="dashboardLayout" class="layout">
+    <aside class="sidebar">
+      <div class="brand">MuScanAI</div>
+      <div class="brand-sub">Agriculture Admin Dashboard</div>
+      <div class="nav">
+        <button class="tab-btn active" data-target="users-section">Users</button>
+        <button class="tab-btn" data-target="mitigations-section">Mitigations</button>
+        <button class="tab-btn" data-target="library-section">Library</button>
+        <button class="tab-btn" data-target="farm-section">Farm</button>
+        <button class="tab-btn" data-target="uploaded-content-section">User Uploaded Content</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="header">
+        <div>
+          <h1>Admin Dashboard</h1>
+          <p>Secure management for users, mitigation methods, and library content.</p>
+        </div>
+        <div class="header-right">
+          <div id="adminIdentity">-</div>
+          <button id="logoutBtn" class="btn-outline" type="button">Log out</button>
+        </div>
+      </div>
+
+      <div id="status" class="status"></div>
+
+      <section id="users-section" class="section active">
+        <div class="card">
+          <div class="toolbar">
+            <h3>User Management</h3>
+            <div class="toolbar-row">
+              <div class="toolbar-left">
+                <input id="usersSearch" placeholder="Search name, mobile, email, role" />
+              </div>
+              <div class="toolbar-actions">
+                <button id="openUserModalBtn" class="toolbar-btn" type="button">Add User</button>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width:56px;">Profile</th>
+                  <th style="width:170px;">Name</th>
+                  <th style="width:140px;">Mobile</th>
+                  <th style="width:220px;">Email</th>
+                  <th style="width:100px;">Role</th>
+                  <th style="width:90px;">Source</th>
+                  <th style="width:120px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="userRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="mitigations-section" class="section">
+        <div class="card">
+          <div class="toolbar">
+            <h3>Mitigation Entries</h3>
+            <div class="toolbar-left">
+              <select id="mitigationFilterSeverity">
+                <option value="All">All severities</option>
+                <option>Functional</option>
+                <option>Mild</option>
+                <option>Moderate</option>
+                <option>Severe</option>
+              </select>
+            </div>
+            <div class="toolbar-actions">
+              <button id="viewMitigationArchiveBtn" class="btn-outline toolbar-btn" type="button">View previous versions</button>
+            </div>
+          </div>
+          <div class="help" style="margin-bottom: 10px;">
+            Hardlocked mode: only Functional, Mild, Moderate, and Severe appear. You can edit or restore one mitigation per severity.
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width:110px;">Severity</th>
+                  <th style="width:190px;">Title</th>
+                  <th>Instruction</th>
+                  <th style="width:70px;">Edit</th>
+                </tr>
+              </thead>
+              <tbody id="mitigationRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom:8px;">Send Mitigation Version to App</h3>
+          <div class="help">Mitigation updates are delivered to mobile users only after clicking send.</div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width:110px;">Severity</th>
+                  <th style="width:100px;">Draft</th>
+                  <th style="width:100px;">Sent</th>
+                  <th>Last sent</th>
+                  <th style="width:140px;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="mitigationVersionRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom:8px;">Mitigation Send History</h3>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width:48px;">ID</th>
+                  <th style="width:100px;">Severity</th>
+                  <th style="width:100px;">Version</th>
+                  <th>Sent by</th>
+                  <th style="width:180px;">Sent at</th>
+                </tr>
+              </thead>
+              <tbody id="mitigationHistoryRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="library-section" class="section">
+        <div class="card">
+          <div class="toolbar">
+            <h3>Library Entries</h3>
+            <div class="toolbar-row">
+              <div class="toolbar-left">
+                <input id="librarySearch" placeholder="Search title or body" />
+              </div>
+              <div class="toolbar-actions">
+                <button id="viewLibraryArchiveBtn" class="btn-outline toolbar-btn" type="button">View previous versions</button>
+                <button id="openLibraryModalBtn" class="toolbar-btn" type="button">Add Entry</button>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width:48px;">ID</th>
+                  <th style="width:200px;">Title</th>
+                  <th>Body</th>
+                  <th style="width:170px;">Image</th>
+                  <th style="width:170px;">Modified</th>
+                  <th style="width:120px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="libraryRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom:8px;">Send Library Version to App</h3>
+          <div class="help">Library updates are visible in mobile clients only after sending.</div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width:220px;">Title</th>
+                  <th style="width:100px;">Draft</th>
+                  <th style="width:100px;">Sent</th>
+                  <th>Last sent</th>
+                  <th style="width:140px;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="libraryVersionRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom:8px;">Library Send History</h3>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width:48px;">ID</th>
+                  <th style="width:220px;">Entry</th>
+                  <th style="width:100px;">Version</th>
+                  <th>Sent by</th>
+                  <th style="width:180px;">Sent at</th>
+                </tr>
+              </thead>
+              <tbody id="libraryHistoryRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="farm-section" class="section">
+        <div class="card">
+          <div class="toolbar">
+            <h3>Farm Management</h3>
+            <div class="toolbar-row">
+              <div class="toolbar-left">
+                <input id="farmSearch" placeholder="Search farm name, address, geotag, or farmer" />
+              </div>
+              <div class="toolbar-actions">
+                <button id="openFarmModalBtn" class="toolbar-btn" type="button">Add New Farm</button>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width:48px;">ID</th>
+                  <th style="width:220px;">Farm Name</th>
+                  <th>Farm Address</th>
+                  <th style="width:220px;">Farmer</th>
+                  <th style="width:170px;">Geotag ID</th>
+                  <th style="width:170px;">Modified</th>
+                  <th style="width:120px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="farmRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="uploaded-content-section" class="section">
+        <div class="card">
+          <div class="toolbar">
+            <h3>User Uploaded Content</h3>
+            <div class="toolbar-row">
+              <div class="toolbar-left">
+                <input id="uploadedContentSearch" placeholder="Search severity, remark, user" />
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width:100px;">Scan Image</th>
+                  <th style="width:150px;">User</th>
+                  <th style="width:220px;">Remark</th>
+                  <th style="width:120px;">Severity</th>
+                  <th style="width:100px;">Mitigations</th>
+                  <th style="width:170px;">Scanned At</th>
+                  <th style="width:170px;">Uploaded At</th>
+                </tr>
+              </thead>
+              <tbody id="uploadedContentRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="userModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="userFormTitle">Add User</h3>
+        <button type="button" class="btn-muted" data-close-modal="userModal">Close</button>
+      </div>
+      <form id="userForm">
+        <input type="hidden" id="userId" />
+        <div class="form-row">
+          <label for="userName">Full name</label>
+          <input id="userName" minlength="2" maxlength="100" required />
+        </div>
+        <div class="form-row">
+          <label for="userContact">Mobile number</label>
+          <input id="userContact" minlength="10" maxlength="15" pattern="[0-9]{10,15}" required />
+        </div>
+        <div class="form-row">
+          <label for="userEmail">Email</label>
+          <input id="userEmail" type="email" />
+        </div>
+        <div class="form-row">
+          <label for="userPassword">Password (min 8 chars)</label>
+          <input id="userPassword" type="password" minlength="8" placeholder="Leave blank to keep current password" />
+        </div>
+        <div class="form-row">
+          <label for="userRole">Role</label>
+          <select id="userRole" required>
+            <option>Farmer</option>
+            <option>Researcher</option>
+            <option>Admin</option>
+            <option>Superadmin</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="userSource">Source</label>
+          <select id="userSource" required>
+            <option value="signup">signup</option>
+            <option value="manual" selected>manual</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button type="submit">Save User</button>
+          <button id="userResetBtn" type="button" class="btn-muted">Reset</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="mitigationModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="mitigationFormTitle">Edit Mitigation</h3>
+        <button type="button" class="btn-muted" data-close-modal="mitigationModal">Close</button>
+      </div>
+      <form id="mitigationForm">
+        <input type="hidden" id="mitigationId" />
+        <div class="form-row">
+          <label for="mitigationSeverity">Severity</label>
+          <input id="mitigationSeverity" readonly />
+        </div>
+        <div class="form-row">
+          <label for="mitigationTitle">Title</label>
+          <input id="mitigationTitle" minlength="3" maxlength="200" required />
+        </div>
+        <div class="form-row">
+          <label>Instruction</label>
+          <div class="rich-toolbar">
+            <button type="button" class="btn-muted" data-m-format="bold"><strong>B</strong></button>
+            <button type="button" class="btn-muted" data-m-format="italic"><em>I</em></button>
+            <button type="button" class="btn-muted" data-m-format="underline"><u>U</u></button>
+            <button type="button" class="btn-muted" id="mitigationInsertImageBtn">Insert image</button>
+            <input id="mitigationImageUploadInput" type="file" accept="image/*" style="display:none;" />
+          </div>
+          <div id="mitigationImageTools" class="image-tools">
+            <div class="tool-group">
+              <label>Align</label>
+              <button type="button" class="btn-muted" id="imgAlignLeftBtn">Left</button>
+              <button type="button" class="btn-muted" id="imgAlignCenterBtn">Center</button>
+              <button type="button" class="btn-muted" id="imgAlignRightBtn">Right</button>
+            </div>
+            <div class="tool-group">
+              <label>Width</label>
+              <input id="imgWidthRange" type="range" min="120" max="960" step="10" value="320" />
+              <span id="imgWidthValue" class="mini">320px</span>
+            </div>
+            <div class="tool-group">
+              <label>Crop</label>
+              <input id="imgCropToggle" type="checkbox" />
+              <input id="imgCropHeightRange" type="range" min="80" max="520" step="10" value="220" />
+              <span id="imgCropHeightValue" class="mini">220px</span>
+            </div>
+            <div class="tool-group">
+              <label>X</label>
+              <input id="imgPosXRange" type="range" min="0" max="100" step="1" value="50" />
+              <label>Y</label>
+              <input id="imgPosYRange" type="range" min="0" max="100" step="1" value="50" />
+            </div>
+          </div>
+          <div id="mitigationInstructionEditor" class="instruction-editor" contenteditable="true"></div>
+        </div>
+        <div class="actions">
+          <button type="submit" data-action="save">Save Mitigation</button>
+          <button type="submit" class="btn-yellow icon-btn icon-send" data-action="save-send" title="Send mitigation">&#9992;</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="libraryModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="libraryFormTitle">Create Library Entry</h3>
+        <button type="button" class="btn-muted" data-close-modal="libraryModal">Close</button>
+      </div>
+      <div class="help">Only Superadmin can create, edit, or delete library entries.</div>
+      <form id="libraryForm">
+        <input type="hidden" id="libraryId" />
+        <div class="form-row">
+          <label for="libraryTitle">Title</label>
+          <input id="libraryTitle" minlength="3" maxlength="200" required />
+        </div>
+        <div class="form-row">
+          <label>Body</label>
+          <div class="rich-toolbar">
+            <button type="button" class="btn-muted" data-l-format="bold"><strong>B</strong></button>
+            <button type="button" class="btn-muted" data-l-format="italic"><em>I</em></button>
+            <button type="button" class="btn-muted" data-l-format="underline"><u>U</u></button>
+          </div>
+          <div id="libraryBodyEditor" class="instruction-editor" contenteditable="true"></div>
+        </div>
+        <div class="form-row">
+          <label>Image</label>
+          <input id="libraryImage" type="hidden" />
+          <div class="actions" style="margin-bottom: 8px;">
+            <button id="libraryImageUploadBtn" type="button" class="btn-muted">Upload image</button>
+            <input id="libraryImageUploadInput" type="file" accept="image/*" style="display:none;" />
+          </div>
+          <img id="libraryImagePreview" alt="Library image preview" style="max-width:220px; max-height:160px; border-radius:10px; border:1px solid #dbe7d8; display:none;" />
+        </div>
+        <div class="form-row">
+          <label for="libraryActorRole">Actor role</label>
+          <select id="libraryActorRole">
+            <option>Superadmin</option>
+            <option>Admin</option>
+            <option>Researcher</option>
+            <option>Farmer</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button type="submit" data-action="save">Save Entry</button>
+          <button type="submit" class="btn-yellow icon-btn icon-send" data-action="save-send" title="Send library">&#9992;</button>
+          <button id="libraryResetBtn" type="button" class="btn-muted">Reset</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="farmModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="farmFormTitle">Add New Farm</h3>
+        <button type="button" class="btn-muted" data-close-modal="farmModal">Close</button>
+      </div>
+      <div class="help">Only Superadmin can create, edit, or delete farm entries.</div>
+      <form id="farmForm">
+        <input type="hidden" id="farmId" />
+        <div class="form-row">
+          <label for="farmName">Farm Name</label>
+          <input id="farmName" minlength="2" maxlength="200" required />
+        </div>
+        <div class="form-row">
+          <label for="farmAddress">Farm Address</label>
+          <textarea id="farmAddress" minlength="5" maxlength="500" rows="3" required></textarea>
+        </div>
+        <div class="form-row">
+          <label for="farmFarmerUserId">Farmer</label>
+          <select id="farmFarmerUserId" required></select>
+        </div>
+        <div class="form-row">
+          <label for="farmGeotagId">Geotag ID</label>
+          <input id="farmGeotagId" minlength="1" maxlength="120" required />
+        </div>
+        <div class="form-row">
+          <label for="farmActorRole">Actor role</label>
+          <select id="farmActorRole">
+            <option>Superadmin</option>
+            <option>Admin</option>
+            <option>Researcher</option>
+            <option>Farmer</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button type="submit">Save Farm</button>
+          <button id="farmResetBtn" type="button" class="btn-muted">Reset</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="archiveModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="archiveTitle">Previous Versions</h3>
+        <button type="button" class="btn-muted" data-close-modal="archiveModal">Close</button>
+      </div>
+      <div id="archiveContent" class="small"></div>
+    </div>
+  </div>
+
+  <div id="imageModal" class="image-modal">
+    <div class="image-modal-content">
+      <button type="button" class="image-modal-close" id="imageModalClose">&times;</button>
+      <img id="imageModalImg" class="image-modal-img" src="" alt="Full view" />
+    </div>
+  </div>
+
+  <script>
+    const normalizeApiBase = (value) => String(value || '').trim().replace(/\/+$/, '');
+
+    const detectApiBase = () => {
+      const fromQuery = new URLSearchParams(window.location.search).get('api');
+      if (fromQuery && fromQuery.trim()) {
+        const normalized = normalizeApiBase(fromQuery);
+        try {
+          localStorage.setItem('muscan.admin.apiBase', normalized);
+        } catch (_) {}
+        return normalized;
+      }
+
+      const fromGlobal = normalizeApiBase(window.MUSCAN_API_BASE || '');
+      if (fromGlobal) return fromGlobal;
+
+      try {
+        const fromStorage = normalizeApiBase(localStorage.getItem('muscan.admin.apiBase') || '');
+        if (fromStorage) return fromStorage;
+      } catch (_) {}
+
+      return '';
+    };
+
+    const API_BASE = detectApiBase();
+    const toApiUrl = (url) => {
+      const raw = String(url || '').trim();
+      if (!raw) return raw;
+      if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+      if (!API_BASE) return raw;
+      if (raw.startsWith('/')) return `${API_BASE}${raw}`;
+      return `${API_BASE}/${raw}`;
+    };
+
+    const USERS_API = '/api/users';
+    const MITIGATIONS_API = '/api/mitigations';
+    const MITIGATION_IMAGE_UPLOAD_API = '/api/mitigation-image-upload';
+    const LIBRARY_API = '/api/library';
+    const LIBRARY_IMAGE_UPLOAD_API = '/api/library-image-upload';
+    const FARMS_API = '/api/farms';
+    const USER_UPLOADED_API = '/api/user-uploaded-content';
+    const ADMIN_SESSION_KEY = 'muscan.admin.session';
+
+    const state = {
+      token: null,
+      user: null,
+      users: [],
+      mitigations: [],
+      library: [],
+      farms: [],
+      uploadedContent: [],
+    };
+
+    const loginGate = document.getElementById('loginGate');
+    const dashboardLayout = document.getElementById('dashboardLayout');
+    const loginStatusEl = document.getElementById('loginStatus');
+    const statusEl = document.getElementById('status');
+
+    const setStatus = (message, kind = 'ok') => {
+      statusEl.textContent = message || '';
+      statusEl.className = `status ${message ? kind : ''}`;
+    };
+
+    const setLoginStatus = (message, kind = 'err') => {
+      loginStatusEl.textContent = message || '';
+      loginStatusEl.className = `status ${message ? kind : ''}`;
+    };
+
+    const esc = (value) => String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+
+    const fmtDate = (raw) => (raw ? new Date(`${raw}Z`).toLocaleString() : '-');
+
+    const resolveApiImageUrl = (url) => {
+      if (!url) return '';
+      const raw = String(url).trim();
+      if (!raw) return '';
+      if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) return raw;
+      if (raw.startsWith('/')) {
+        return toApiUrl(raw);
+      }
+      return raw;
+    };
+
+    const openModal = (id) => document.getElementById(id).classList.add('open');
+    const closeModal = (id) => document.getElementById(id).classList.remove('open');
+
+    document.querySelectorAll('[data-close-modal]').forEach((btn) => {
+      btn.addEventListener('click', () => closeModal(btn.getAttribute('data-close-modal')));
+    });
+
+    const apiFetch = async (url, init = {}) => {
+      const isFormData = typeof FormData !== 'undefined' && init.body instanceof FormData;
+      const headers = {
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+        ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}),
+        ...(init.headers || {}),
+      };
+
+      const res = await fetch(toApiUrl(url), { ...init, headers });
+      if (!res.ok) {
+        const detail = await res.text();
+        throw new Error(detail || `HTTP ${res.status}`);
+      }
+      if (res.status === 204) return null;
+      return res.json();
+    };
+
+    const saveSession = () => {
+      if (!state.token || !state.user) return;
+      localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({ token: state.token, user: state.user }));
+    };
+
+    const clearSession = () => {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+      state.token = null;
+      state.user = null;
+    };
+
+    const ensureAdminRole = (user) => user && (user.role === 'Admin' || user.role === 'Superadmin');
+
+    const showDashboard = () => {
+      loginGate.style.display = 'none';
+      dashboardLayout.style.display = 'grid';
+      document.getElementById('adminIdentity').textContent = `${state.user.name} (${state.user.role})`;
+    };
+
+    const showLogin = () => {
+      dashboardLayout.style.display = 'none';
+      loginGate.style.display = 'grid';
+    };
+
+    const verifyStoredSession = async () => {
+      const raw = localStorage.getItem(ADMIN_SESSION_KEY);
+      if (!raw) return false;
+
+      try {
+        const parsed = JSON.parse(raw);
+        state.token = parsed.token;
+        const data = await apiFetch('/api/auth/session', {
+          method: 'POST',
+          body: JSON.stringify({ token: parsed.token }),
+        });
+        if (!data.valid || !ensureAdminRole(data.user)) {
+          clearSession();
+          return false;
+        }
+        state.user = data.user;
+        return true;
+      } catch {
+        clearSession();
+        return false;
+      }
+    };
+
+    document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      setLoginStatus('');
+      const contact = document.getElementById('adminContact').value.trim();
+      const password = document.getElementById('adminPassword').value.trim();
+
+      try {
+        const data = await apiFetch('/api/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ contact_number: contact, password }),
+        });
+
+        if (!ensureAdminRole(data.user)) {
+          throw new Error('Only Admin and Superadmin can access this dashboard.');
+        }
+
+        state.token = data.token;
+        state.user = data.user;
+        saveSession();
+        showDashboard();
+        setStatus('Welcome. Dashboard unlocked.');
+        await loadEverything();
+      } catch (err) {
+        setLoginStatus(err.message || 'Login failed');
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try {
+        if (state.token) {
+          await apiFetch('/api/auth/logout', {
+            method: 'POST',
+            body: JSON.stringify({ token: state.token }),
+          });
+        }
+      } catch {
+        // Ignore network errors on logout.
+      }
+      clearSession();
+      showLogin();
+      setStatus('');
+    });
+
+    const initTabs = () => {
+      const buttons = document.querySelectorAll('.tab-btn');
+      const sections = document.querySelectorAll('.section');
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const target = btn.dataset.target;
+          buttons.forEach((b) => b.classList.remove('active'));
+          sections.forEach((s) => s.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById(target).classList.add('active');
+          setStatus('');
+        });
+      });
+    };
+
+    const userFields = {
+      id: document.getElementById('userId'),
+      name: document.getElementById('userName'),
+      contact: document.getElementById('userContact'),
+      email: document.getElementById('userEmail'),
+      password: document.getElementById('userPassword'),
+      role: document.getElementById('userRole'),
+      source: document.getElementById('userSource'),
+    };
+
+    const resetUserForm = () => {
+      userFields.id.value = '';
+      userFields.name.value = '';
+      userFields.contact.value = '';
+      userFields.email.value = '';
+      userFields.password.value = '';
+      userFields.role.value = 'Farmer';
+      userFields.source.value = 'manual';
+      document.getElementById('userFormTitle').textContent = 'Add User';
+    };
+
+    const renderUsers = () => {
+      const term = document.getElementById('usersSearch').value.trim().toLowerCase();
+      const rows = state.users.filter((u) => {
+        if (!term) return true;
+        return [u.name, u.contact_number, u.email, u.role, u.source].some((v) => String(v || '').toLowerCase().includes(term));
+      });
+
+      const el = document.getElementById('userRows');
+      el.innerHTML = '';
+      rows.forEach((u) => {
+        const tr = document.createElement('tr');
+        const profileImageUrl = resolveApiImageUrl(u.profile_image || '');
+        const profilePic = u.profile_image && u.profile_image.trim()
+          ? `<img src="${esc(profileImageUrl)}" alt="${esc(u.name)}" class="profile-avatar" />`
+          : `<div class="profile-avatar" style="background: linear-gradient(135deg, #3e8f43, #2f6d35); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">${esc(u.name.charAt(0).toUpperCase())}</div>`;
+        tr.innerHTML = `
+          <td>${profilePic}</td>
+          <td>${esc(u.name)}</td>
+          <td>${esc(u.contact_number || '-')}</td>
+          <td>${esc(u.email || '-')}</td>
+          <td><span class="chip ${u.role}">${esc(u.role)}</span></td>
+          <td>${esc(u.source)}</td>
+          <td>
+            <div class="icon-actions">
+              <button class="icon-btn icon-edit" title="Edit user" data-user-edit="${u.id}">&#9998;</button>
+              <button class="icon-btn icon-delete" title="Delete user" data-user-del="${u.id}">&#128465;</button>
+            </div>
+          </td>
+        `;
+        el.appendChild(tr);
+      });
+    };
+
+    const loadUsers = async () => {
+      state.users = await apiFetch(USERS_API);
+      renderUsers();
+      refreshFarmFarmerOptions();
+    };
+
+    document.getElementById('usersSearch').addEventListener('input', renderUsers);
+    document.getElementById('openUserModalBtn').addEventListener('click', () => {
+      resetUserForm();
+      openModal('userModal');
+    });
+    document.getElementById('userResetBtn').addEventListener('click', resetUserForm);
+
+    document.getElementById('userRows').addEventListener('click', async (e) => {
+      const editId = e.target.getAttribute('data-user-edit');
+      const delId = e.target.getAttribute('data-user-del');
+      if (editId) {
+        const u = await apiFetch(`${USERS_API}/${editId}`);
+        userFields.id.value = u.id;
+        userFields.name.value = u.name;
+        userFields.contact.value = u.contact_number || '';
+        userFields.email.value = u.email || '';
+        userFields.password.value = '';
+        userFields.role.value = u.role;
+        userFields.source.value = u.source;
+        document.getElementById('userFormTitle').textContent = `Edit User #${u.id}`;
+        openModal('userModal');
+      }
+      if (delId) {
+        if (!confirm(`Delete user #${delId}?`)) return;
+        await apiFetch(`${USERS_API}/${delId}`, { method: 'DELETE' });
+        setStatus('User deleted.');
+        await loadUsers();
+      }
+    });
+
+    document.getElementById('userForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = userFields.id.value;
+      const payload = {
+        name: userFields.name.value.trim(),
+        contact_number: userFields.contact.value.trim(),
+        email: userFields.email.value.trim() || null,
+        role: userFields.role.value,
+        ...(userFields.password.value.trim() ? { password: userFields.password.value.trim() } : {}),
+      };
+
+      if (id) {
+        await apiFetch(`${USERS_API}/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        setStatus('User updated.');
+      } else if (userFields.source.value === 'signup') {
+        await apiFetch(`${USERS_API}/signup`, { method: 'POST', body: JSON.stringify(payload) });
+        setStatus('User added from signup source.');
+      } else {
+        await apiFetch(`${USERS_API}/manual`, { method: 'POST', body: JSON.stringify({ ...payload, actor_role: 'Superadmin' }) });
+        setStatus('User added manually.');
+      }
+
+      closeModal('userModal');
+      resetUserForm();
+      await loadUsers();
+    });
+
+    const mitigationFields = {
+      id: document.getElementById('mitigationId'),
+      severity: document.getElementById('mitigationSeverity'),
+      title: document.getElementById('mitigationTitle'),
+      instructionEditor: document.getElementById('mitigationInstructionEditor'),
+      imageInput: document.getElementById('mitigationImageUploadInput'),
+      imageTools: document.getElementById('mitigationImageTools'),
+      imgAlignLeftBtn: document.getElementById('imgAlignLeftBtn'),
+      imgAlignCenterBtn: document.getElementById('imgAlignCenterBtn'),
+      imgAlignRightBtn: document.getElementById('imgAlignRightBtn'),
+      imgWidthRange: document.getElementById('imgWidthRange'),
+      imgWidthValue: document.getElementById('imgWidthValue'),
+      imgCropToggle: document.getElementById('imgCropToggle'),
+      imgCropHeightRange: document.getElementById('imgCropHeightRange'),
+      imgCropHeightValue: document.getElementById('imgCropHeightValue'),
+      imgPosXRange: document.getElementById('imgPosXRange'),
+      imgPosYRange: document.getElementById('imgPosYRange'),
+    };
+
+    let activeEditorImage = null;
+
+    const clearActiveEditorImage = () => {
+      if (activeEditorImage) {
+        activeEditorImage.classList.remove('selected-editor-image');
+      }
+      activeEditorImage = null;
+      mitigationFields.imageTools.classList.remove('open');
+    };
+
+    const setImageAlignment = (img, align) => {
+      img.dataset.align = align;
+      img.style.display = 'block';
+      if (align === 'left') {
+        img.style.margin = '8px auto 8px 0';
+      } else if (align === 'right') {
+        img.style.margin = '8px 0 8px auto';
+      } else {
+        img.style.margin = '8px auto';
+      }
+    };
+
+    const syncImageToolValues = (img) => {
+      const currentWidth = parseInt(img.style.width || '320', 10);
+      const currentHeight = parseInt(img.style.height || '220', 10);
+      const isCrop = img.style.objectFit === 'cover';
+      const [x, y] = (img.style.objectPosition || '50% 50%').split(' ');
+      const posX = Number.parseInt(String(x || '50').replace('%', ''), 10);
+      const posY = Number.parseInt(String(y || '50').replace('%', ''), 10);
+
+      mitigationFields.imgWidthRange.value = String(Number.isFinite(currentWidth) ? currentWidth : 320);
+      mitigationFields.imgWidthValue.textContent = `${mitigationFields.imgWidthRange.value}px`;
+      mitigationFields.imgCropToggle.checked = isCrop;
+      mitigationFields.imgCropHeightRange.value = String(Number.isFinite(currentHeight) ? currentHeight : 220);
+      mitigationFields.imgCropHeightValue.textContent = `${mitigationFields.imgCropHeightRange.value}px`;
+      mitigationFields.imgPosXRange.value = String(Number.isFinite(posX) ? posX : 50);
+      mitigationFields.imgPosYRange.value = String(Number.isFinite(posY) ? posY : 50);
+    };
+
+    const applyImageToolsToActive = () => {
+      if (!activeEditorImage) return;
+
+      const width = Number.parseInt(mitigationFields.imgWidthRange.value, 10);
+      const crop = Boolean(mitigationFields.imgCropToggle.checked);
+      const cropHeight = Number.parseInt(mitigationFields.imgCropHeightRange.value, 10);
+      const posX = Number.parseInt(mitigationFields.imgPosXRange.value, 10);
+      const posY = Number.parseInt(mitigationFields.imgPosYRange.value, 10);
+
+      activeEditorImage.style.width = `${Math.max(120, width || 320)}px`;
+      activeEditorImage.style.maxWidth = '100%';
+
+      mitigationFields.imgWidthValue.textContent = `${mitigationFields.imgWidthRange.value}px`;
+      mitigationFields.imgCropHeightValue.textContent = `${mitigationFields.imgCropHeightRange.value}px`;
+
+      if (crop) {
+        activeEditorImage.style.height = `${Math.max(80, cropHeight || 220)}px`;
+        activeEditorImage.style.objectFit = 'cover';
+        activeEditorImage.style.objectPosition = `${Math.max(0, Math.min(100, posX || 50))}% ${Math.max(0, Math.min(100, posY || 50))}%`;
+      } else {
+        activeEditorImage.style.height = 'auto';
+        activeEditorImage.style.objectFit = 'contain';
+        activeEditorImage.style.objectPosition = '50% 50%';
+      }
+    };
+
+    const setActiveEditorImage = (img) => {
+      if (!img || img.tagName !== 'IMG') {
+        clearActiveEditorImage();
+        return;
+      }
+
+      if (activeEditorImage && activeEditorImage !== img) {
+        activeEditorImage.classList.remove('selected-editor-image');
+      }
+
+      activeEditorImage = img;
+      activeEditorImage.classList.add('selected-editor-image');
+      mitigationFields.imageTools.classList.add('open');
+
+      if (!activeEditorImage.style.width) {
+        activeEditorImage.style.width = '320px';
+      }
+      if (!activeEditorImage.style.maxWidth) {
+        activeEditorImage.style.maxWidth = '100%';
+      }
+      if (!activeEditorImage.dataset.align) {
+        setImageAlignment(activeEditorImage, 'center');
+      }
+
+      syncImageToolValues(activeEditorImage);
+    };
+
+    const mInstructionHtml = () => mitigationFields.instructionEditor.innerHTML.trim();
+    const setMInstructionHtml = (htmlValue) => {
+      mitigationFields.instructionEditor.innerHTML = htmlValue || '<p></p>';
+      clearActiveEditorImage();
+    };
+
+    const instructionPreview = (htmlValue) => {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = htmlValue || '';
+      wrap.querySelectorAll('img').forEach((img) => img.replaceWith('[image] '));
+      const text = (wrap.textContent || '').replace(/\s+/g, ' ').trim();
+      if (!text) return '<span class="small">No instruction yet</span>';
+      return esc(text.length > 190 ? `${text.slice(0, 190)}...` : text);
+    };
+
+    const openMitigationEditor = (m) => {
+      mitigationFields.id.value = m.id;
+      mitigationFields.severity.value = m.severity;
+      mitigationFields.title.value = m.title;
+      setMInstructionHtml(m.instruction || m.description || '');
+      document.getElementById('mitigationFormTitle').textContent = `Edit ${m.severity} Mitigation`;
+      openModal('mitigationModal');
+    };
+
+    const resetMitigationForm = () => {
+      mitigationFields.id.value = '';
+      mitigationFields.severity.value = '';
+      mitigationFields.title.value = '';
+      setMInstructionHtml('');
+      document.getElementById('mitigationFormTitle').textContent = 'Edit Mitigation';
+      clearActiveEditorImage();
+    };
+
+    const renderMitigations = () => {
+      const rows = state.mitigations;
+      const el = document.getElementById('mitigationRows');
+      el.innerHTML = '';
+      rows.forEach((m) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="chip ${m.severity}">${esc(m.severity)}</span></td>
+          <td>${esc(m.title)}</td>
+          <td><div class="instruction-preview">${instructionPreview(m.instruction || m.description)}</div></td>
+          <td>
+            <div class="icon-actions">
+              <button class="icon-btn icon-edit" title="Edit mitigation" data-m-edit="${m.id}">&#9998;</button>
+            </div>
+          </td>
+        `;
+        el.appendChild(tr);
+      });
+    };
+
+    const loadMitigations = async () => {
+      const sev = document.getElementById('mitigationFilterSeverity').value;
+      state.mitigations = await apiFetch(sev === 'All' ? MITIGATIONS_API : `${MITIGATIONS_API}/by-severity/${sev}`);
+      renderMitigations();
+    };
+
+    const sendMitigationSeverity = async (severity) => {
+      const sent = await apiFetch(`${MITIGATIONS_API}/send/${severity}`, {
+        method: 'POST',
+        body: JSON.stringify({ actor_role: 'Admin', actor_name: state.user?.name || 'Dashboard Admin' }),
+      });
+      setStatus(sent.sent ? `Mitigation ${severity} v${sent.sent_version} sent.` : sent.message || 'Nothing new to send.');
+      await loadMitigationVersions();
+      await loadMitigationHistory();
+    };
+
+    const loadMitigationVersions = async () => {
+      const data = await apiFetch(`${MITIGATIONS_API}/versions`);
+      const versions = data.versions || {};
+      const severities = ['Functional', 'Mild', 'Moderate', 'Severe'];
+      const el = document.getElementById('mitigationVersionRows');
+      el.innerHTML = '';
+      severities.forEach((sev) => {
+        const v = versions[sev] || { draft_version: 1, sent_version: 1, pending: false, sent_at: null, sent_by: null };
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="chip ${sev}">${sev}</span></td>
+          <td>v${v.draft_version}</td>
+          <td>v${v.sent_version}</td>
+          <td>${v.sent_at ? `${fmtDate(v.sent_at)}<br><span class="small">${esc(v.sent_by || '')}</span>` : '-'}</td>
+          <td><button class="icon-btn icon-send" title="Send mitigation" data-send-severity="${sev}" ${v.pending ? '' : 'disabled'}>&#9992;</button></td>
+        `;
+        el.appendChild(tr);
+      });
+    };
+
+    const loadMitigationHistory = async () => {
+      const rows = await apiFetch(`${MITIGATIONS_API}/send-history`);
+      const el = document.getElementById('mitigationHistoryRows');
+      el.innerHTML = '';
+      if (!rows.length) {
+        el.innerHTML = '<tr><td colspan="5" class="small">No mitigation versions sent yet.</td></tr>';
+        return;
+      }
+      rows.forEach((r) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.id}</td>
+          <td><span class="chip ${r.severity}">${esc(r.severity)}</span></td>
+          <td>v${r.sent_version}</td>
+          <td>${esc(r.sent_by)}</td>
+          <td>${fmtDate(r.sent_at)}</td>
+        `;
+        el.appendChild(tr);
+      });
+    };
+
+    document.getElementById('mitigationFilterSeverity').addEventListener('change', loadMitigations);
+
+    document.querySelectorAll('[data-m-format]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const cmd = btn.getAttribute('data-m-format');
+        mitigationFields.instructionEditor.focus();
+        document.execCommand(cmd, false);
+      });
+    });
+
+    document.getElementById('mitigationInsertImageBtn').addEventListener('click', () => {
+      mitigationFields.imageInput.value = '';
+      mitigationFields.imageInput.click();
+    });
+
+    mitigationFields.imageInput.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const payload = new FormData();
+        payload.append('file', file);
+        const uploaded = await apiFetch(MITIGATION_IMAGE_UPLOAD_API, { method: 'POST', body: payload });
+        mitigationFields.instructionEditor.focus();
+        const safeSrc = String(uploaded.url || '').replaceAll('"', '&quot;');
+        document.execCommand(
+          'insertHTML',
+          false,
+          `<img src="${safeSrc}" style="display:block; width:320px; max-width:100%; margin:8px auto; object-fit:contain; object-position:50% 50%;" data-align="center" />`
+        );
+        const images = mitigationFields.instructionEditor.querySelectorAll('img');
+        const latest = images.length ? images[images.length - 1] : null;
+        if (latest) {
+          setActiveEditorImage(latest);
+        }
+      } catch (err) {
+        setStatus(err.message || 'Failed to upload instruction image.', 'err');
+      }
+    });
+
+    mitigationFields.instructionEditor.addEventListener('click', (event) => {
+      const target = event.target;
+      if (target && target.tagName === 'IMG') {
+        setActiveEditorImage(target);
+        return;
+      }
+      clearActiveEditorImage();
+    });
+
+    mitigationFields.imgAlignLeftBtn.addEventListener('click', () => {
+      if (!activeEditorImage) return;
+      setImageAlignment(activeEditorImage, 'left');
+    });
+
+    mitigationFields.imgAlignCenterBtn.addEventListener('click', () => {
+      if (!activeEditorImage) return;
+      setImageAlignment(activeEditorImage, 'center');
+    });
+
+    mitigationFields.imgAlignRightBtn.addEventListener('click', () => {
+      if (!activeEditorImage) return;
+      setImageAlignment(activeEditorImage, 'right');
+    });
+
+    [
+      mitigationFields.imgWidthRange,
+      mitigationFields.imgCropToggle,
+      mitigationFields.imgCropHeightRange,
+      mitigationFields.imgPosXRange,
+      mitigationFields.imgPosYRange,
+    ].forEach((el) => {
+      el.addEventListener('input', applyImageToolsToActive);
+      el.addEventListener('change', applyImageToolsToActive);
+    });
+
+    document.getElementById('mitigationRows').addEventListener('click', async (e) => {
+      const editId = e.target.getAttribute('data-m-edit');
+      if (editId) {
+        const m = await apiFetch(`${MITIGATIONS_API}/${editId}`);
+        openMitigationEditor(m);
+      }
+    });
+
+    document.getElementById('mitigationVersionRows').addEventListener('click', async (e) => {
+      const severity = e.target.getAttribute('data-send-severity');
+      if (!severity) return;
+      await sendMitigationSeverity(severity);
+    });
+
+    document.getElementById('mitigationForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const action = e.submitter?.dataset.action || 'save';
+      const id = mitigationFields.id.value;
+      const instruction = mInstructionHtml();
+      const payload = {
+        title: mitigationFields.title.value.trim(),
+        instruction,
+      };
+
+      if (!id) {
+        setStatus('Choose an existing mitigation severity to edit.', 'err');
+        return;
+      }
+
+      if (!payload.title || !instruction.replace(/<[^>]+>/g, '').trim()) {
+        setStatus('Title and instruction are required before saving mitigation.', 'err');
+        return;
+      }
+
+      await apiFetch(`${MITIGATIONS_API}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      });
+
+      setStatus('Mitigation updated.');
+      closeModal('mitigationModal');
+      resetMitigationForm();
+      await loadMitigations();
+      await loadMitigationVersions();
+
+      if (action === 'save-send') {
+        await sendMitigationSeverity(mitigationFields.severity.value);
+      }
+    });
+
+    const libraryFields = {
+      id: document.getElementById('libraryId'),
+      title: document.getElementById('libraryTitle'),
+      bodyEditor: document.getElementById('libraryBodyEditor'),
+      image: document.getElementById('libraryImage'),
+      imageUploadBtn: document.getElementById('libraryImageUploadBtn'),
+      imageUploadInput: document.getElementById('libraryImageUploadInput'),
+      imagePreview: document.getElementById('libraryImagePreview'),
+      actorRole: document.getElementById('libraryActorRole'),
+    };
+
+    const lBodyHtml = () => libraryFields.bodyEditor.innerHTML.trim();
+    const setLBodyHtml = (htmlValue) => {
+      libraryFields.bodyEditor.innerHTML = htmlValue || '<p></p>';
+    };
+
+    const libraryBodyPlainText = (htmlValue) => {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = htmlValue || '';
+      return (wrap.textContent || '').replace(/\s+/g, ' ').trim();
+    };
+
+    const resetLibraryForm = () => {
+      libraryFields.id.value = '';
+      libraryFields.title.value = '';
+      setLBodyHtml('');
+      libraryFields.image.value = '';
+      libraryFields.imagePreview.removeAttribute('src');
+      libraryFields.imagePreview.style.display = 'none';
+      libraryFields.actorRole.value = state.user?.role || 'Superadmin';
+      document.getElementById('libraryFormTitle').textContent = 'Create Library Entry';
+    };
+
+    const renderLibrary = () => {
+      const term = document.getElementById('librarySearch').value.trim().toLowerCase();
+      const rows = state.library.filter((l) => {
+        if (!term) return true;
+        return `${l.title} ${libraryBodyPlainText(l.body)}`.toLowerCase().includes(term);
+      });
+
+      const el = document.getElementById('libraryRows');
+      el.innerHTML = '';
+      rows.forEach((entry) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${entry.id}</td>
+          <td>${esc(entry.title)}</td>
+          <td>${esc(libraryBodyPlainText(entry.body))}</td>
+          <td><a href="${esc(entry.image)}" target="_blank">View image</a></td>
+          <td>${fmtDate(entry.modified_at)}</td>
+          <td>
+            <div class="icon-actions">
+              <button class="icon-btn icon-edit" title="Edit library entry" data-l-edit="${entry.id}">&#9998;</button>
+              <button class="icon-btn icon-delete" title="Delete library entry" data-l-del="${entry.id}">&#128465;</button>
+            </div>
+          </td>
+        `;
+        el.appendChild(tr);
+      });
+    };
+
+    const loadLibrary = async () => {
+      state.library = await apiFetch(LIBRARY_API);
+      renderLibrary();
+    };
+
+    const farmFields = {
+      id: document.getElementById('farmId'),
+      farmName: document.getElementById('farmName'),
+      farmAddress: document.getElementById('farmAddress'),
+      farmerUserId: document.getElementById('farmFarmerUserId'),
+      geotagId: document.getElementById('farmGeotagId'),
+      actorRole: document.getElementById('farmActorRole'),
+    };
+
+    const getFarmerUsers = () => state.users.filter((u) => String(u.role || '').toLowerCase() === 'farmer');
+
+    const refreshFarmFarmerOptions = () => {
+      const farmers = getFarmerUsers();
+      const currentValue = farmFields.farmerUserId.value;
+
+      if (!farmers.length) {
+        farmFields.farmerUserId.innerHTML = '<option value="">No Farmer users found</option>';
+        farmFields.farmerUserId.value = '';
+        return;
+      }
+
+      farmFields.farmerUserId.innerHTML = farmers
+        .map((u) => `<option value="${u.id}">${esc(u.name)} (${esc(u.contact_number || '-')})</option>`)
+        .join('');
+
+      if (currentValue && farmers.some((u) => String(u.id) === String(currentValue))) {
+        farmFields.farmerUserId.value = currentValue;
+      }
+    };
+
+    const resetFarmForm = () => {
+      farmFields.id.value = '';
+      farmFields.farmName.value = '';
+      farmFields.farmAddress.value = '';
+      farmFields.geotagId.value = '';
+      farmFields.actorRole.value = state.user?.role || 'Superadmin';
+      refreshFarmFarmerOptions();
+      document.getElementById('farmFormTitle').textContent = 'Add New Farm';
+    };
+
+    const renderFarms = () => {
+      const term = document.getElementById('farmSearch').value.trim().toLowerCase();
+      const rows = state.farms.filter((f) => {
+        if (!term) return true;
+        return [
+          f.farm_name,
+          f.farm_address,
+          f.geotag_id,
+          f.farmer_name,
+          f.farmer_contact_number,
+        ].some((v) => String(v || '').toLowerCase().includes(term));
+      });
+
+      const el = document.getElementById('farmRows');
+      el.innerHTML = '';
+      if (!rows.length) {
+        el.innerHTML = '<tr><td colspan="7" class="small">No farm entries yet.</td></tr>';
+        return;
+      }
+
+      rows.forEach((farm) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${farm.id}</td>
+          <td>${esc(farm.farm_name)}</td>
+          <td>${esc(farm.farm_address)}</td>
+          <td>${esc(farm.farmer_name || '-')}<br><span class="small">${esc(farm.farmer_contact_number || '-')}</span></td>
+          <td>${esc(farm.geotag_id)}</td>
+          <td>${fmtDate(farm.modified_at)}</td>
+          <td>
+            <div class="icon-actions">
+              <button class="icon-btn icon-edit" title="Edit farm" data-farm-edit="${farm.id}">&#9998;</button>
+              <button class="icon-btn icon-delete" title="Delete farm" data-farm-del="${farm.id}">&#128465;</button>
+            </div>
+          </td>
+        `;
+        el.appendChild(tr);
+      });
+    };
+
+    const loadFarms = async () => {
+      state.farms = await apiFetch(FARMS_API);
+      renderFarms();
+    };
+
+    const renderUploadedContent = () => {
+      const term = document.getElementById('uploadedContentSearch').value.trim().toLowerCase();
+      const rows = state.uploadedContent.filter((row) => {
+        if (!term) return true;
+        return [
+          row.user_name,
+          row.user_contact,
+          row.severity,
+          row.remark,
+          row.history_id,
+        ].some((v) => String(v || '').toLowerCase().includes(term));
+      });
+
+      const el = document.getElementById('uploadedContentRows');
+      el.innerHTML = '';
+
+      if (!rows.length) {
+        el.innerHTML = '<tr><td colspan="7" class="small">No uploaded content yet.</td></tr>';
+        return;
+      }
+
+      rows.forEach((row) => {
+        const tr = document.createElement('tr');
+        const mitigationCount = Array.isArray(row.mitigations) ? row.mitigations.length : 0;
+        
+        // Convert image URI to full URL if it's a relative path
+        let fullImageUrl = row.image_uri;
+        if (row.image_uri && row.image_uri.startsWith('/api/uploads/')) {
+          // Relative path from server - construct full URL
+          const protocol = window.location.protocol;
+          const hostname = window.location.hostname;
+          const port = window.location.port ? `:${window.location.port}` : '';
+          fullImageUrl = `${protocol}//${hostname}${port}${row.image_uri}`;
+        }
+        
+        const imageThumb = row.image_uri ? `<img src="${esc(fullImageUrl)}" alt="Scan" class="image-thumbnail" data-image-src="${esc(fullImageUrl)}" />` : '<span class="small">No image</span>';
+        tr.innerHTML = `
+          <td>${imageThumb}</td>
+          <td>${esc(row.user_name || 'Unknown')}<br><span class="small">${esc(row.user_contact || '-')}</span></td>
+          <td>${esc(row.remark || '-')}</td>
+          <td><span class="chip ${esc(row.severity)}">${esc(row.severity)}</span></td>
+          <td>${mitigationCount}</td>
+          <td>${fmtDate(row.scanned_at)}</td>
+          <td>${fmtDate(row.uploaded_at)}</td>
+        `;
+        el.appendChild(tr);
+      });
+    };
+
+    const loadUploadedContent = async () => {
+      state.uploadedContent = await apiFetch(USER_UPLOADED_API);
+      renderUploadedContent();
+    };
+
+    const sendLibraryVersionByEntry = async (entryId) => {
+      const sent = await apiFetch(`${LIBRARY_API}/send/${entryId}`, {
+        method: 'POST',
+        body: JSON.stringify({ actor_name: state.user?.name || 'Dashboard Admin', actor_role: libraryFields.actorRole.value || 'Superadmin' }),
+      });
+      setStatus(sent.sent ? `Library entry #${entryId} v${sent.sent_version} sent.` : sent.message || 'Nothing new to send.');
+      await loadLibraryVersions();
+      await loadLibraryHistory();
+    };
+
+    const loadLibraryVersions = async () => {
+      const v = await apiFetch(`${LIBRARY_API}/versions`);
+      const entries = Array.isArray(v.entries) ? v.entries : [];
+      const el = document.getElementById('libraryVersionRows');
+      if (!entries.length) {
+        el.innerHTML = '<tr><td colspan="5" class="small">No library entries yet.</td></tr>';
+        return;
+      }
+
+      el.innerHTML = entries.map((entry) => `
+        <tr>
+          <td>${esc(entry.title)}</td>
+          <td>v${entry.draft_version}</td>
+          <td>v${entry.sent_version}</td>
+          <td>${entry.sent_at ? `${fmtDate(entry.sent_at)}<br><span class="small">${esc(entry.sent_by || '')}</span>` : '-'}</td>
+          <td><button class="icon-btn icon-send" title="Send library" data-send-library="${entry.id}" ${entry.pending ? '' : 'disabled'}>&#9992;</button></td>
+        </tr>
+      `).join('');
+    };
+
+    const loadLibraryHistory = async () => {
+      const rows = await apiFetch(`${LIBRARY_API}/send-history`);
+      const el = document.getElementById('libraryHistoryRows');
+      el.innerHTML = '';
+      if (!rows.length) {
+        el.innerHTML = '<tr><td colspan="5" class="small">No library versions sent yet.</td></tr>';
+        return;
+      }
+      rows.forEach((r) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.id}</td>
+          <td>${esc(r.title || `Entry #${r.library_id}`)}</td>
+          <td>v${r.sent_version}</td>
+          <td>${esc(r.sent_by)}</td>
+          <td>${fmtDate(r.sent_at)}</td>
+        `;
+        el.appendChild(tr);
+      });
+    };
+
+    document.querySelectorAll('[data-l-format]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const cmd = btn.getAttribute('data-l-format');
+        libraryFields.bodyEditor.focus();
+        document.execCommand(cmd, false);
+      });
+    });
+
+    libraryFields.imageUploadBtn.addEventListener('click', () => {
+      libraryFields.imageUploadInput.value = '';
+      libraryFields.imageUploadInput.click();
+    });
+
+    libraryFields.imageUploadInput.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const payload = new FormData();
+        payload.append('file', file);
+        const uploaded = await apiFetch(LIBRARY_IMAGE_UPLOAD_API, { method: 'POST', body: payload });
+        libraryFields.image.value = uploaded.url;
+        libraryFields.imagePreview.src = resolveApiImageUrl(uploaded.url);
+        libraryFields.imagePreview.style.display = 'block';
+      } catch (err) {
+        setStatus(err.message || 'Failed to upload library image.', 'err');
+      }
+    });
+
+    document.getElementById('librarySearch').addEventListener('input', renderLibrary);
+    document.getElementById('uploadedContentSearch').addEventListener('input', renderUploadedContent);
+
+    // Image modal event listeners
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('image-thumbnail')) {
+        const imageSrc = e.target.getAttribute('data-image-src');
+        if (imageSrc) {
+          document.getElementById('imageModalImg').src = imageSrc;
+          document.getElementById('imageModal').classList.add('open');
+        }
+      }
+    });
+
+    document.getElementById('imageModalClose').addEventListener('click', () => {
+      document.getElementById('imageModal').classList.remove('open');
+    });
+
+    document.getElementById('imageModal').addEventListener('click', (e) => {
+      if (e.target.id === 'imageModal') {
+        document.getElementById('imageModal').classList.remove('open');
+      }
+    });
+
+    document.getElementById('openLibraryModalBtn').addEventListener('click', () => {
+      resetLibraryForm();
+      openModal('libraryModal');
+    });
+    document.getElementById('libraryResetBtn').addEventListener('click', resetLibraryForm);
+
+    document.getElementById('libraryRows').addEventListener('click', async (e) => {
+      const editId = e.target.getAttribute('data-l-edit');
+      const delId = e.target.getAttribute('data-l-del');
+      if (editId) {
+        const entry = await apiFetch(`${LIBRARY_API}/${editId}`);
+        libraryFields.id.value = entry.id;
+        libraryFields.title.value = entry.title;
+        setLBodyHtml(entry.body);
+        libraryFields.image.value = entry.image;
+        if (entry.image) {
+          libraryFields.imagePreview.src = resolveApiImageUrl(entry.image);
+          libraryFields.imagePreview.style.display = 'block';
+        } else {
+          libraryFields.imagePreview.removeAttribute('src');
+          libraryFields.imagePreview.style.display = 'none';
+        }
+        document.getElementById('libraryFormTitle').textContent = `Edit Library Entry #${entry.id}`;
+        openModal('libraryModal');
+      }
+      if (delId) {
+        if (!confirm(`Delete library entry #${delId}?`)) return;
+        await apiFetch(`${LIBRARY_API}/${delId}?actor_role=${encodeURIComponent(libraryFields.actorRole.value || 'Superadmin')}`, { method: 'DELETE' });
+        setStatus('Library entry deleted.');
+        await loadLibrary();
+        await loadLibraryVersions();
+      }
+    });
+
+    document.getElementById('libraryVersionRows').addEventListener('click', async (e) => {
+      const sendId = e.target.getAttribute('data-send-library');
+      if (!sendId) return;
+      await sendLibraryVersionByEntry(sendId);
+    });
+
+    document.getElementById('libraryForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const action = e.submitter?.dataset.action || 'save';
+      const id = libraryFields.id.value;
+      const bodyHtml = lBodyHtml();
+      const payload = {
+        title: libraryFields.title.value.trim(),
+        body: bodyHtml,
+        image: libraryFields.image.value.trim(),
+        actor_role: libraryFields.actorRole.value,
+      };
+
+      if (!payload.title || !libraryBodyPlainText(bodyHtml) || !payload.image) {
+        setStatus('Title, body content, and an uploaded image are required before saving.', 'err');
+        return;
+      }
+
+      const savedEntry = await apiFetch(id ? `${LIBRARY_API}/${id}` : LIBRARY_API, {
+        method: id ? 'PUT' : 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      setStatus(id ? 'Library entry updated.' : 'Library entry created.');
+      closeModal('libraryModal');
+      resetLibraryForm();
+      await loadLibrary();
+      await loadLibraryVersions();
+
+      if (action === 'save-send') {
+        const targetId = id || savedEntry?.id;
+        if (targetId) {
+          await sendLibraryVersionByEntry(targetId);
+        }
+      }
+    });
+
+    document.getElementById('farmSearch').addEventListener('input', renderFarms);
+    document.getElementById('openFarmModalBtn').addEventListener('click', () => {
+      resetFarmForm();
+      openModal('farmModal');
+    });
+    document.getElementById('farmResetBtn').addEventListener('click', resetFarmForm);
+
+    document.getElementById('farmRows').addEventListener('click', async (e) => {
+      const editId = e.target.getAttribute('data-farm-edit');
+      const delId = e.target.getAttribute('data-farm-del');
+
+      if (editId) {
+        const farm = await apiFetch(`${FARMS_API}/${editId}`);
+        farmFields.id.value = farm.id;
+        farmFields.farmName.value = farm.farm_name;
+        farmFields.farmAddress.value = farm.farm_address;
+        farmFields.geotagId.value = farm.geotag_id;
+        refreshFarmFarmerOptions();
+        farmFields.farmerUserId.value = String(farm.farmer_user_id || '');
+        document.getElementById('farmFormTitle').textContent = `Edit Farm #${farm.id}`;
+        openModal('farmModal');
+      }
+
+      if (delId) {
+        if (!confirm(`Delete farm entry #${delId}?`)) return;
+        await apiFetch(`${FARMS_API}/${delId}?actor_role=${encodeURIComponent(farmFields.actorRole.value || 'Superadmin')}`, {
+          method: 'DELETE',
+        });
+        setStatus('Farm entry deleted.');
+        await loadFarms();
+      }
+    });
+
+    document.getElementById('farmForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = farmFields.id.value;
+      const payload = {
+        farm_name: farmFields.farmName.value.trim(),
+        farm_address: farmFields.farmAddress.value.trim(),
+        farmer_user_id: Number(farmFields.farmerUserId.value),
+        geotag_id: farmFields.geotagId.value.trim(),
+        actor_role: farmFields.actorRole.value,
+      };
+
+      if (!payload.farm_name || !payload.farm_address || !payload.farmer_user_id || !payload.geotag_id) {
+        setStatus('Farm name, address, farmer, and geotag ID are required.', 'err');
+        return;
+      }
+
+      await apiFetch(id ? `${FARMS_API}/${id}` : FARMS_API, {
+        method: id ? 'PUT' : 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      setStatus(id ? 'Farm entry updated.' : 'Farm entry created.');
+      closeModal('farmModal');
+      resetFarmForm();
+      await loadFarms();
+    });
+
+    const showArchive = (title, html) => {
+      document.getElementById('archiveTitle').textContent = title;
+      document.getElementById('archiveContent').innerHTML = html;
+      openModal('archiveModal');
+    };
+
+    document.getElementById('viewMitigationArchiveBtn').addEventListener('click', async () => {
+      const severity = document.getElementById('mitigationFilterSeverity').value;
+      if (severity === 'All') {
+        setStatus('Select one severity first to view previous versions.', 'err');
+        return;
+      }
+
+      const rows = await apiFetch(`${MITIGATIONS_API}/archive/${severity}`);
+      if (!rows.length) {
+        showArchive(`Previous Versions: ${severity}`, '<p class="small">No previous sent versions yet.</p>');
+        return;
+      }
+
+      const html = rows.map((v) => `
+        <div class="card" style="margin-bottom:10px; box-shadow:none;">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+            <div><strong>Version v${v.sent_version}</strong> <span class="small">sent at ${fmtDate(v.sent_at)} by ${esc(v.sent_by || '-')}</span></div>
+            <button type="button" class="btn-muted" data-restore-severity="${esc(v.severity)}" data-restore-version="${v.sent_version}">Restore this version</button>
+          </div>
+          <ul>
+            ${v.items.map((i) => `<li><strong>${esc(i.title)}</strong><div style="margin-top:4px;">${i.instruction || i.description || ''}</div></li>`).join('')}
+          </ul>
+        </div>
+      `).join('');
+      showArchive(`Previous Versions: ${severity}`, html);
+    });
+
+    document.getElementById('archiveContent').addEventListener('click', async (e) => {
+      const severity = e.target.getAttribute('data-restore-severity');
+      const sentVersion = e.target.getAttribute('data-restore-version');
+      if (!severity || !sentVersion) return;
+      if (!confirm(`Restore ${severity} to sent version v${sentVersion}?`)) return;
+
+      await apiFetch(`${MITIGATIONS_API}/restore/${encodeURIComponent(severity)}/${encodeURIComponent(sentVersion)}`, {
+        method: 'POST',
+      });
+      setStatus(`Restored ${severity} mitigation draft to version v${sentVersion}.`);
+      closeModal('archiveModal');
+      await loadMitigations();
+      await loadMitigationVersions();
+      await loadMitigationHistory();
+    });
+
+    document.getElementById('viewLibraryArchiveBtn').addEventListener('click', async () => {
+      const rows = await apiFetch(`${LIBRARY_API}/archive`);
+      if (!rows.length) {
+        showArchive('Library Previous Versions', '<p class="small">No previous sent versions yet.</p>');
+        return;
+      }
+
+      const html = rows.map((v) => `
+        <div class="card" style="margin-bottom:10px; box-shadow:none;">
+          <div><strong>${esc(v.title || `Entry #${v.source_library_id}`)} • Version v${v.sent_version}</strong> <span class="small">sent at ${fmtDate(v.sent_at)} by ${esc(v.sent_by || '-')}</span></div>
+          <ul>
+            ${v.items.map((i) => `<li><strong>${esc(i.title)}</strong><br>${esc(i.body)}</li>`).join('')}
+          </ul>
+        </div>
+      `).join('');
+      showArchive('Library Previous Versions', html);
+    });
+
+    const loadEverything = async () => {
+      await loadLibrary();
+      await Promise.all([
+        loadUsers(),
+        loadFarms(),
+        loadMitigations(),
+        loadMitigationVersions(),
+        loadMitigationHistory(),
+        loadLibraryVersions(),
+        loadLibraryHistory(),
+        loadUploadedContent(),
+      ]);
+    };
+
+    const bootstrap = async () => {
+      initTabs();
+      resetUserForm();
+      resetMitigationForm();
+      resetLibraryForm();
+      resetFarmForm();
+
+      const ok = await verifyStoredSession();
+      if (!ok) {
+        showLogin();
+        return;
+      }
+
+      showDashboard();
+      await loadEverything();
+    };
+
+    bootstrap();
+  </script>
+</body>
+</html>
+
