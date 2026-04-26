@@ -7,7 +7,9 @@ import json
 import os
 import re
 import secrets
+import sys
 import time
+import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -47,6 +49,10 @@ DB_PORT = int(_env("DB_PORT", "MYSQL_PORT", default="3306"))
 DB_NAME = _env("DB_NAME", "MYSQL_DATABASE", default="muscan_admin")
 DB_USER = _env("DB_USER", "MYSQL_USER", default="muscan_app")
 DB_PASSWORD = _env("DB_PASSWORD", "MYSQL_PASSWORD", default="")
+
+
+def _is_render_runtime() -> bool:
+    return bool(os.getenv("RENDER") or os.getenv("RENDER_SERVICE_ID"))
 
 SEVERITIES = {"Functional", "Mild", "Moderate", "Severe"}
 SEVERITY_NORMALIZED = {s.casefold(): s for s in SEVERITIES}
@@ -1326,6 +1332,12 @@ def ensure_farmer_user(conn, farmer_user_id: int) -> dict:
 
 @app.on_event("startup")
 def startup() -> None:
+    if _is_render_runtime() and DB_HOST.strip().lower() in {"127.0.0.1", "localhost"}:
+        raise RuntimeError(
+            "Invalid DB_HOST for Render: localhost/127.0.0.1 points to the app container itself. "
+            "Use your external MySQL host in DB_HOST."
+        )
+
     last_error: Exception | None = None
     for attempt in range(1, 4):
         try:
@@ -1339,6 +1351,8 @@ def startup() -> None:
             raise
 
     if last_error is not None:
+        print("Startup failed after retries:", repr(last_error), file=sys.stderr)
+        traceback.print_exception(type(last_error), last_error, last_error.__traceback__, file=sys.stderr)
         raise last_error
 
 
