@@ -166,3 +166,31 @@ This repo also includes `render.yaml` for one-click backend setup on Render.
 5. Deploy and copy the API URL.
 6. Open your GitHub Pages admin URL with `?api=<your-api-url>`.
 
+### 6) Move your local MySQL to a cloud host
+If your MySQL is currently on your PC, Render cannot reach it. You need a cloud MySQL host with a public hostname.
+
+Use this migration flow:
+1. Create a free cloud MySQL database from a provider that gives you host, port, database name, user, and password.
+2. Take note of the cloud host value from the provider dashboard. It will not be `localhost` or `127.0.0.1`.
+3. In Render, set:
+   - `DB_HOST` = cloud MySQL host
+   - `DB_PORT` = provider port
+   - `DB_NAME` = cloud database name
+   - `DB_USER` = cloud username
+   - `DB_PASSWORD` = cloud password
+   - `DB_SSL` = `true` if the provider requires TLS
+4. Export your local database from your PC and import it into the cloud host.
+5. Redeploy Render.
+
+If you want to move existing data, use one of these:
+- MySQL Workbench export/import wizard
+- `mysqldump` on your PC, then restore into the cloud database
+
+Example export/import pattern:
+```powershell
+mysqldump -h 127.0.0.1 -u root -p muscan_admin > muscan_admin.sql
+mysql -h <cloud-host> -u <cloud-user> -p muscan_admin < muscan_admin.sql
+```
+
+When the cloud host is correct, Render should boot without the localhost error.
+

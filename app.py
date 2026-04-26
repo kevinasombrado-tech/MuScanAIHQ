@@ -10,6 +10,7 @@ import secrets
 import sys
 import time
 import traceback
+import ssl
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -49,6 +50,7 @@ DB_PORT = int(_env("DB_PORT", "MYSQL_PORT", default="3306"))
 DB_NAME = _env("DB_NAME", "MYSQL_DATABASE", default="muscan_admin")
 DB_USER = _env("DB_USER", "MYSQL_USER", default="muscan_app")
 DB_PASSWORD = _env("DB_PASSWORD", "MYSQL_PASSWORD", default="")
+DB_SSL = _env("DB_SSL", "MYSQL_SSL", default="false").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _is_render_runtime() -> bool:
@@ -249,7 +251,7 @@ app.mount("/api/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads
 def get_db():
     """Get MySQL database connection with dict cursor for easy row access."""
     try:
-        conn = pymysql.connect(
+        connection_kwargs = dict(
             host=DB_HOST,
             port=DB_PORT,
             user=DB_USER,
@@ -261,7 +263,13 @@ def get_db():
             connect_timeout=5,
             read_timeout=5,
             write_timeout=5,
-            )
+        )
+        if DB_SSL:
+            connection_kwargs["ssl"] = ssl.create_default_context()
+
+        conn = pymysql.connect(
+            **connection_kwargs
+        )
         return conn
     except pymysql.err.OperationalError as exc:
         # Provide an actionable startup error when credentials are missing or invalid.
