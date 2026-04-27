@@ -6,208 +6,329 @@
   <title>MuScanAI Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
   <style>
+    /* ── Design tokens (PlantMD palette) ────────────────────────────────── */
     :root {
-      --green-900: #20411f;
-      --green-700: #2f6d35;
-      --green-500: #3e8f43;
-      --green-100: #edf8ee;
-      --yellow-700: #8c6600;
-      --yellow-600: #a47600;
-      --yellow-200: #f7e8b0;
-      --white: #ffffff;
-      --text: #1d2f1f;
-      --muted: #6a786a;
-      --danger: #b42318;
-      --danger-soft: #fce8e6;
-      --ok: #0f7a2e;
-      --ok-soft: #e7f9ec;
-      --border: #dbe7d8;
-      --shadow: 0 16px 36px rgba(29, 47, 31, 0.08);
+      --bg:          #0d2818;
+      --surface:     #1a3d25;
+      --surface2:    #2d5a3d;
+      --surface3:    #3a6e4d;
+      --border:      rgba(74,140,96,0.35);
+      --border-soft: rgba(74,140,96,0.18);
+      --accent:      #c8e44a;
+      --accent-dim:  rgba(200,228,74,0.18);
+      --accent-mid:  #4a8c60;
+      --muted:       #8ab49a;
+      --text-primary:#f0f7f2;
+      --text-soft:   #b8d9c4;
+      --amber:       #f5b942;
+      --amber-dim:   rgba(245,185,66,0.15);
+      --danger:      #f87171;
+      --danger-dim:  rgba(248,113,113,0.12);
+      --ok:          #6ee7b7;
+      --ok-dim:      rgba(110,231,183,0.12);
+      --shadow:      0 8px 32px rgba(0,0,0,0.4);
+      --shadow-sm:   0 2px 12px rgba(0,0,0,0.25);
+      --radius:      16px;
+      --radius-sm:   10px;
+      --radius-xs:   7px;
+      /* severity */
+      --sev-functional-bg: #0a2614; --sev-functional: #6ee7b7;
+      --sev-mild-bg:       #3b2800; --sev-mild:       #fbbf24;
+      --sev-moderate-bg:   #3b1500; --sev-moderate:   #fb923c;
+      --sev-severe-bg:     #3b0a0a; --sev-severe:     #f87171;
     }
 
-    * { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
 
     body {
-      margin: 0;
-      font-family: "Roboto", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      color: var(--text);
-      background: linear-gradient(140deg, #f8fcf5 0%, #edf6ea 45%, #fff9e8 100%);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      background: var(--bg);
+      min-height: 100vh;
     }
 
+    /* ── Auth gate ──────────────────────────────────────────────────────── */
     .auth-gate {
       min-height: 100vh;
       display: grid;
       place-items: center;
       padding: 20px;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-gate::before {
+      content: '';
+      position: absolute;
+      top: -120px; right: -120px;
+      width: 400px; height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(74,140,96,0.22) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .auth-gate::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: -80px;
+      width: 280px; height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(45,90,61,0.35) 0%, transparent 70%);
+      pointer-events: none;
     }
 
     .auth-card {
-      width: min(430px, 100%);
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 18px;
+      width: min(440px, 100%);
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 24px;
+      padding: 32px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .auth-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .auth-brand-icon {
+      width: 46px; height: 46px;
+      border-radius: 13px;
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+
+    .auth-brand-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--text-primary);
     }
 
     .auth-title {
-      margin: 0;
-      font-size: 27px;
-      color: var(--green-900);
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      color: var(--text-primary);
+      margin-bottom: 6px;
     }
 
     .auth-sub {
-      margin: 8px 0 18px;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 13px;
+      margin-bottom: 24px;
+      line-height: 1.6;
     }
 
+    /* ── Layout ─────────────────────────────────────────────────────────── */
     .layout {
       min-height: 100vh;
       display: none;
-      grid-template-columns: 245px 1fr;
+      grid-template-columns: 240px 1fr;
     }
 
+    /* ── Sidebar ────────────────────────────────────────────────────────── */
     .sidebar {
-      background: linear-gradient(180deg, #1d4120 0%, #2f6d35 100%);
-      color: #f1fdf2;
-      padding: 18px 14px;
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--surface);
+      border-right: 0.5px solid var(--border);
+      padding: 24px 14px;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
     }
 
     .brand {
-      margin: 8px 10px 16px;
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 6px;
+      margin-bottom: 6px;
+    }
+
+    .brand-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .brand-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px;
+      color: var(--text-primary);
     }
 
     .brand-sub {
-      margin: 0 10px 20px;
-      font-size: 12px;
-      color: #c9e3c9;
+      font-size: 11px;
+      color: var(--muted);
+      padding: 0 6px;
+      margin-bottom: 20px;
+      margin-top: 2px;
     }
 
-    .nav {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .sidebar-divider {
+      height: 0.5px;
+      background: var(--border-soft);
+      margin: 10px 6px 14px;
     }
+
+    .nav { display: flex; flex-direction: column; gap: 4px; }
 
     .nav button {
       width: 100%;
-      border: 1px solid transparent;
+      border: 0.5px solid transparent;
       background: transparent;
-      color: #ddf2dc;
-      border-radius: 12px;
-      padding: 11px 12px;
+      color: var(--muted);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
       text-align: left;
-      font-weight: 600;
+      font-weight: 500;
+      font-size: 13px;
       cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .nav button:hover {
+      background: var(--surface2);
+      color: var(--text-soft);
     }
 
     .nav button.active {
-      background: rgba(255, 255, 255, 0.14);
-      border-color: rgba(255, 255, 255, 0.25);
-      color: #fff;
+      background: var(--accent-dim);
+      border-color: rgba(200,228,74,0.35);
+      color: var(--accent);
+      font-weight: 600;
     }
 
-    .main {
-      padding: 18px;
+    .nav-icon { font-size: 15px; flex-shrink: 0; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 0.5px solid var(--border-soft);
     }
 
+    /* ── Main ───────────────────────────────────────────────────────────── */
+    .main { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── Top header bar ─────────────────────────────────────────────────── */
     .header {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px 16px;
-      box-shadow: var(--shadow);
-      margin-bottom: 12px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 16px;
     }
 
-    .header h1 {
-      margin: 0;
-      font-size: 24px;
-      color: var(--green-900);
+    .header-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--text-primary);
     }
 
-    .header p {
-      margin: 5px 0 0;
+    .header-sub {
+      font-size: 12px;
       color: var(--muted);
-      font-size: 13px;
+      margin-top: 2px;
     }
 
     .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-identity {
       text-align: right;
-      font-size: 13px;
+      font-size: 12px;
       color: var(--muted);
     }
 
+    /* ── Status bar ─────────────────────────────────────────────────────── */
     .status {
-      margin-bottom: 10px;
-      min-height: 22px;
-      border-radius: 10px;
-      border: 1px solid transparent;
-      padding: 8px 10px;
+      min-height: 0;
+      border-radius: var(--radius-sm);
+      border: 0.5px solid transparent;
+      padding: 0;
       font-size: 13px;
+      overflow: hidden;
+      transition: padding 0.2s, min-height 0.2s;
     }
 
     .status.ok {
-      background: var(--ok-soft);
+      background: var(--ok-dim);
       color: var(--ok);
-      border-color: #b5ebc4;
+      border-color: rgba(110,231,183,0.25);
+      padding: 10px 14px;
+      min-height: 0;
     }
 
     .status.err {
-      background: var(--danger-soft);
+      background: var(--danger-dim);
       color: var(--danger);
-      border-color: #f8c8c3;
+      border-color: rgba(248,113,113,0.25);
+      padding: 10px 14px;
     }
 
-    .section { display: none; }
-    .section.active { display: block; }
+    /* ── Sections ───────────────────────────────────────────────────────── */
+    .section { display: none; flex-direction: column; gap: 14px; }
+    .section.active { display: flex; }
 
+    /* ── Card ───────────────────────────────────────────────────────────── */
     .card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: var(--shadow);
-      padding: 14px;
-      margin-bottom: 12px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 18px;
     }
 
     .card h3 {
-      margin: 0;
+      font-family: 'DM Serif Display', serif;
       font-size: 17px;
-      color: var(--green-900);
+      color: var(--text-primary);
+      font-weight: 400;
     }
 
+    /* ── Toolbar ────────────────────────────────────────────────────────── */
     .toolbar {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
-    .toolbar h3 {
-      width: 100%;
-      margin-bottom: 2px;
-    }
+    .toolbar h3 { margin-bottom: 2px; }
 
     .toolbar-row {
-      width: 100%;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
@@ -216,8 +337,8 @@
       gap: 8px;
       align-items: center;
       flex-wrap: wrap;
-      min-width: 220px;
       flex: 1;
+      min-width: 200px;
     }
 
     .toolbar-actions {
@@ -229,23 +350,7 @@
     }
 
     .toolbar-left input,
-    .toolbar-left select {
-      width: min(320px, 100%);
-    }
-
-    .toolbar-right {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .mitigation-controls {
-      display: flex;
-      gap: 8px;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
+    .toolbar-left select { width: min(320px, 100%); }
 
     .filter-stack {
       display: flex;
@@ -254,69 +359,91 @@
       min-width: 170px;
     }
 
+    /* ── Form elements ──────────────────────────────────────────────────── */
     label {
       display: block;
-      font-size: 13px;
-      margin-bottom: 6px;
-      color: var(--muted);
+      font-size: 11px;
       font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-bottom: 6px;
     }
 
     input, textarea, select {
       width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px;
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 13px;
       font-size: 14px;
-      background: #fff;
-      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-primary);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
     }
+
+    input::placeholder, textarea::placeholder {
+      color: var(--muted);
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: rgba(200,228,74,0.5);
+      box-shadow: 0 0 0 3px rgba(200,228,74,0.08);
+    }
+
+    select option { background: var(--surface2); color: var(--text-primary); }
 
     textarea {
       min-height: 110px;
       resize: vertical;
     }
 
+    .form-row { margin-bottom: 14px; }
+
+    /* ── Rich editor ────────────────────────────────────────────────────── */
     .rich-toolbar {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
       margin-bottom: 8px;
     }
 
     .rich-toolbar .btn-muted {
-      padding: 6px 10px;
+      padding: 5px 10px;
       font-size: 12px;
-      border-radius: 8px;
+      border-radius: var(--radius-xs);
     }
 
     .instruction-editor {
       width: 100%;
       min-height: 220px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px;
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
       font-size: 14px;
-      background: #fff;
-      color: var(--text);
+      color: var(--text-primary);
       overflow: auto;
+      font-family: 'DM Sans', sans-serif;
     }
 
     .instruction-editor:focus {
-      outline: 2px solid #9dd4a0;
-      border-color: #7bbf80;
+      outline: none;
+      border-color: rgba(200,228,74,0.5);
+      box-shadow: 0 0 0 3px rgba(200,228,74,0.08);
     }
 
     .instruction-editor img.selected-editor-image {
-      outline: 2px solid #3e8f43;
+      outline: 2px solid var(--accent);
       outline-offset: 2px;
       cursor: pointer;
     }
 
     .image-tools {
-      border: 1px solid var(--border);
-      background: #f8fcf5;
-      border-radius: 10px;
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
       padding: 10px;
       margin-bottom: 10px;
       display: none;
@@ -325,235 +452,116 @@
       align-items: center;
     }
 
-    .image-tools.open {
-      display: flex;
-    }
+    .image-tools.open { display: flex; }
 
     .image-tools .tool-group {
       display: flex;
       align-items: center;
       gap: 6px;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 8px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-xs);
+      padding: 6px 10px;
     }
 
     .image-tools label {
       margin: 0;
-      font-size: 11px;
-      color: #607268;
+      font-size: 10px;
+      color: var(--muted);
       font-weight: 700;
     }
 
     .image-tools input[type="range"] {
-      width: 120px;
+      width: 110px;
       padding: 0;
       border: 0;
       background: transparent;
+      accent-color: var(--accent);
     }
 
     .image-tools .mini {
       font-size: 11px;
       min-width: 36px;
       text-align: right;
-      color: #334155;
+      color: var(--text-soft);
       font-weight: 700;
     }
 
     .instruction-preview {
       max-width: 460px;
-      max-height: 88px;
+      max-height: 72px;
       overflow: hidden;
-      text-overflow: ellipsis;
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.35;
+      font-size: 12px;
+      line-height: 1.5;
     }
 
-    .form-row { margin-bottom: 10px; }
-
-    .actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+    /* ── Buttons ────────────────────────────────────────────────────────── */
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
     button {
-      border: 0;
-      border-radius: 10px;
-      padding: 9px 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 9px 16px;
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 600;
       cursor: pointer;
-      color: #fff;
-      background: var(--green-700);
-    }
-
-    button:hover { filter: brightness(1.03); }
-
-    button:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .btn-yellow {
-      background: var(--yellow-600);
-      color: #fff;
-    }
-
-    .btn-muted {
-      background: #607268;
-      color: #fff;
-    }
-
-    .btn-danger {
-      background: var(--danger);
-    }
-
-    .btn-outline {
-      background: #fff;
-      color: var(--green-700);
-      border: 1px solid #9ec39f;
-    }
-
-    .toolbar-btn {
-      min-height: 38px;
-      padding: 9px 14px;
-      border-radius: 10px;
-      font-weight: 700;
-    }
-
-    .icon-btn {
-      min-width: 36px;
-      height: 36px;
-      padding: 0;
+      font-family: 'DM Sans', sans-serif;
+      transition: filter 0.15s, transform 0.1s, opacity 0.15s;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border-radius: 8px;
-      font-size: 16px;
+      gap: 6px;
+    }
+
+    button:hover:not(:disabled) { filter: brightness(1.06); }
+    button:active:not(:disabled) { transform: scale(0.98); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* Primary — lime on dark */
+    button:not([class]) {
+      background: var(--accent);
+      color: #0d2818;
+    }
+
+    .btn-primary { background: var(--accent); color: #0d2818; }
+    .btn-yellow  { background: var(--amber); color: #0d2818; }
+    .btn-muted   { background: var(--surface2); color: var(--text-soft); border: 0.5px solid var(--border); }
+    .btn-danger  { background: var(--danger-dim); color: var(--danger); border: 0.5px solid rgba(248,113,113,0.3); }
+    .btn-outline { background: transparent; color: var(--accent); border: 0.5px solid rgba(200,228,74,0.4); }
+
+    .toolbar-btn { min-height: 36px; padding: 8px 16px; }
+
+    .icon-btn {
+      min-width: 32px;
+      height: 32px;
+      padding: 0 8px;
+      border-radius: var(--radius-xs);
+      font-size: 14px;
       line-height: 1;
     }
 
-    .profile-avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: var(--border);
-      border: 2px solid var(--border);
-      object-fit: cover;
-      display: inline-block;
-      background-size: cover;
-      background-position: center;
-    }
+    .icon-edit   { background: rgba(99,179,237,0.15); color: #63b3ed; border: 0.5px solid rgba(99,179,237,0.3); }
+    .icon-delete { background: var(--danger-dim); color: var(--danger); border: 0.5px solid rgba(248,113,113,0.3); }
+    .icon-send   { background: var(--amber-dim); color: var(--amber); border: 0.5px solid rgba(245,185,66,0.3); }
+    .icon-add    { background: var(--accent-dim); color: var(--accent); border: 0.5px solid rgba(200,228,74,0.3); }
 
-    .image-thumbnail {
-      width: 80px;
-      height: 80px;
-      border-radius: 8px;
-      object-fit: cover;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
+    .icon-actions { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 
-    .image-thumbnail:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(29, 47, 31, 0.15);
-    }
-
-    .image-modal {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      background: rgba(18, 34, 18, 0.8);
-      z-index: 1000;
-    }
-
-    .image-modal.open { display: flex; }
-
-    .image-modal-content {
-      background: var(--white);
-      border-radius: 14px;
-      padding: 12px;
-      max-width: min(90vw, 600px);
-      max-height: 90vh;
-      overflow: auto;
-      box-shadow: var(--shadow);
-    }
-
-    .image-modal-close {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 32px;
-      height: 32px;
-      background: var(--danger);
-      color: white;
-      border: 0;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .image-modal-close:hover {
-      filter: brightness(1.1);
-    }
-
-    .image-modal-img {
-      width: 100%;
-      height: auto;
-      border-radius: 10px;
-      display: block;
-    }
-
-    .icon-edit {
-      background: #1d4ed8;
-      color: #fff;
-    }
-
-    .icon-delete {
-      background: var(--danger);
-      color: #fff;
-    }
-
-    .icon-send {
-      background: var(--yellow-600);
-      color: #fff;
-    }
-
-    .icon-add {
-      background: var(--green-700);
-      color: #fff;
-    }
-
-    .icon-actions {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-    }
-
+    /* ── Help block ─────────────────────────────────────────────────────── */
     .help {
-      background: #f6fbf3;
-      border: 1px solid #c8e1c8;
-      color: #37633a;
-      border-radius: 10px;
+      background: rgba(74,140,96,0.12);
+      border: 0.5px solid rgba(74,140,96,0.3);
+      color: var(--text-soft);
+      border-radius: var(--radius-sm);
       font-size: 12px;
-      padding: 8px 10px;
-      margin-bottom: 10px;
+      padding: 10px 13px;
+      margin-bottom: 12px;
+      line-height: 1.6;
     }
 
-    .table-wrap {
-      overflow-x: auto;
-    }
+    /* ── Tables ─────────────────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
 
     .table {
       width: 100%;
@@ -561,78 +569,153 @@
       min-width: 700px;
     }
 
-    .table th,
-    .table td {
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-      vertical-align: top;
-      padding: 8px 6px;
-      font-size: 13px;
-    }
-
     .table th {
-      color: var(--muted);
-      font-size: 11px;
+      font-size: 10px;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .model-refresh-meta {
-      font-size: 12px;
+      letter-spacing: 0.7px;
       color: var(--muted);
+      padding: 8px 10px;
+      border-bottom: 0.5px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
     }
 
-    .model-score {
-      font-weight: 800;
-      color: var(--green-900);
-    }
-
-    .model-empty {
-      text-align: center;
-      color: var(--muted);
+    .table td {
+      border-bottom: 0.5px solid var(--border-soft);
+      text-align: left;
+      vertical-align: middle;
+      padding: 10px;
       font-size: 13px;
-      padding: 12px;
+      color: var(--text-soft);
     }
 
+    .table tbody tr:hover td { background: rgba(74,140,96,0.06); }
+    .table tbody tr:last-child td { border-bottom: none; }
+
+    /* ── Profile avatar ─────────────────────────────────────────────────── */
+    .profile-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      object-fit: cover;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface2);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* ── Image thumbnail ────────────────────────────────────────────────── */
+    .image-thumbnail {
+      width: 72px;
+      height: 60px;
+      border-radius: var(--radius-xs);
+      object-fit: cover;
+      cursor: pointer;
+      border: 0.5px solid var(--border);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .image-thumbnail:hover {
+      transform: scale(1.04);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+
+    /* ── Image modal ────────────────────────────────────────────────────── */
+    .image-modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(6,18,10,0.88);
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+
+    .image-modal.open { display: flex; }
+
+    .image-modal-content {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      max-width: min(90vw, 600px);
+      max-height: 90vh;
+      overflow: auto;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .image-modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      background: var(--danger-dim);
+      color: var(--danger);
+      border: 0.5px solid rgba(248,113,113,0.3);
+      border-radius: var(--radius-xs);
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-modal-img {
+      width: 100%;
+      height: auto;
+      border-radius: var(--radius-sm);
+      display: block;
+    }
+
+    /* ── Overview tiles ─────────────────────────────────────────────────── */
     .overview-detail-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 10px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .overview-detail-tile {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: #f7fbf6;
-      padding: 10px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      padding: 12px;
     }
 
     .overview-detail-tile .k {
-      font-size: 11px;
+      font-size: 10px;
+      font-weight: 700;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 4px;
-      font-weight: 700;
+      letter-spacing: 0.6px;
+      margin-bottom: 5px;
     }
 
     .overview-detail-tile .v {
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--green-900);
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px;
+      color: var(--text-primary);
     }
 
     .overview-bars {
       display: flex;
       align-items: flex-end;
       gap: 8px;
-      min-height: 140px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px;
-      background: #f7fbf6;
-      margin-bottom: 12px;
+      min-height: 130px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      background: var(--surface2);
+      margin-bottom: 14px;
     }
 
     .overview-bar-col {
@@ -641,14 +724,14 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-end;
-      gap: 6px;
+      gap: 5px;
     }
 
     .overview-bar-track {
       width: 100%;
-      height: 90px;
-      border-radius: 8px;
-      background: #e8f2e7;
+      height: 80px;
+      border-radius: 6px;
+      background: rgba(74,140,96,0.15);
       display: flex;
       align-items: flex-end;
       overflow: hidden;
@@ -656,63 +739,71 @@
 
     .overview-bar-fill {
       width: 100%;
-      background: var(--green-700);
+      background: var(--accent-mid);
       min-height: 6px;
+      transition: height 0.4s ease;
     }
 
-    .overview-chip-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
+    .overview-chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
 
-    .overview-issue-row {
-      margin-bottom: 10px;
-    }
+    .overview-issue-row { margin-bottom: 10px; }
 
     .overview-issue-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 12px;
-      margin-bottom: 4px;
+      color: var(--text-soft);
+      margin-bottom: 5px;
     }
 
     .overview-issue-track {
       width: 100%;
-      height: 9px;
-      background: #e8f2e7;
+      height: 7px;
+      background: rgba(74,140,96,0.15);
       border-radius: 999px;
       overflow: hidden;
     }
 
     .overview-issue-fill {
       height: 100%;
-      background: var(--green-700);
+      background: var(--accent-mid);
+      border-radius: 999px;
       min-width: 4px;
     }
 
+    /* ── Chips / badges ─────────────────────────────────────────────────── */
     .chip {
       display: inline-block;
-      padding: 3px 10px;
+      padding: 3px 9px;
       border-radius: 999px;
-      border: 1px solid var(--border);
-      font-size: 12px;
-      background: #f7faf8;
+      border: 0.5px solid var(--border);
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--surface2);
+      color: var(--text-soft);
     }
 
     .small { color: var(--muted); font-size: 12px; }
 
-    .Functional { background: #e7f9eb; color: #14532d; }
-    .Mild { background: #fff8da; color: #7a4f01; }
-    .Moderate { background: #ffeccd; color: #8a4e00; }
-    .Severe { background: #fde3e3; color: #8a1d1d; }
-    .Farmer { background: #e6f7eb; color: #1c6330; }
-    .Researcher { background: #edf6ff; color: #1f4f8a; }
-    .Admin { background: #fff4d6; color: #835600; }
-    .Superadmin { background: #e8f9f1; color: #165f3b; }
+    /* Severity chips */
+    .Functional { background: var(--sev-functional-bg); color: var(--sev-functional); border-color: rgba(110,231,183,0.3); }
+    .Mild       { background: var(--sev-mild-bg);       color: var(--sev-mild);       border-color: rgba(251,191,36,0.3); }
+    .Moderate   { background: var(--sev-moderate-bg);   color: var(--sev-moderate);   border-color: rgba(251,146,60,0.3); }
+    .Severe     { background: var(--sev-severe-bg);     color: var(--sev-severe);     border-color: rgba(248,113,113,0.3); }
 
+    /* Role chips */
+    .Farmer      { background: rgba(74,140,96,0.15);  color: var(--ok);    border-color: rgba(110,231,183,0.2); }
+    .Researcher  { background: rgba(99,179,237,0.12); color: #63b3ed;      border-color: rgba(99,179,237,0.25); }
+    .Admin       { background: var(--amber-dim);      color: var(--amber); border-color: rgba(245,185,66,0.3); }
+    .Superadmin  { background: rgba(200,228,74,0.12); color: var(--accent);border-color: rgba(200,228,74,0.3); }
+
+    /* ── Model score ────────────────────────────────────────────────────── */
+    .model-refresh-meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .model-score { font-weight: 700; color: var(--accent); }
+    .model-empty { text-align: center; color: var(--muted); font-size: 13px; padding: 20px; }
+
+    /* ── Modal ──────────────────────────────────────────────────────────── */
     .modal {
       position: fixed;
       inset: 0;
@@ -720,8 +811,9 @@
       align-items: center;
       justify-content: center;
       padding: 18px;
-      background: rgba(18, 34, 18, 0.48);
+      background: rgba(6,18,10,0.72);
       z-index: 999;
+      backdrop-filter: blur(4px);
     }
 
     .modal.open { display: flex; }
@@ -730,10 +822,10 @@
       width: min(680px, 100%);
       max-height: 90vh;
       overflow: auto;
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
       box-shadow: var(--shadow);
     }
 
@@ -741,81 +833,132 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 8px;
+      gap: 12px;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 0.5px solid var(--border-soft);
     }
 
-    .modal-head h3 { margin: 0; }
+    .modal-head h3 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--text-primary);
+    }
 
-    @media (max-width: 980px) {
+    /* ── Scrollbar styling ──────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent-mid); }
+
+    /* ── Responsive ─────────────────────────────────────────────────────── */
+    @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
-      .sidebar { border-right: 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-      .nav { flex-direction: row; }
+      .sidebar {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 0.5px solid var(--border);
+      }
+      .nav { flex-direction: row; flex-wrap: wrap; }
+      .nav button { width: auto; flex: 1; min-width: 100px; }
       .header { flex-direction: column; align-items: flex-start; }
-      .header-right { text-align: left; }
     }
+
+    /* ── Mitigation controls ────────────────────────────────────────────── */
+    .mitigation-controls { display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap; }
   </style>
 </head>
 <body>
+
+  <!-- ── Auth gate ──────────────────────────────────────────────────────── -->
   <div id="loginGate" class="auth-gate">
     <div class="auth-card">
-      <h2 class="auth-title">MuScanAI Admin Login</h2>
-      <p class="auth-sub">Only Admin and Superadmin users can open the dashboard.</p>
+      <div class="auth-brand">
+        <div class="auth-brand-icon">🌿</div>
+        <span class="auth-brand-name">MuScanAI</span>
+      </div>
+      <h2 class="auth-title">Admin Login</h2>
+      <p class="auth-sub">Only Admin and Superadmin users can access this dashboard.</p>
       <form id="adminLoginForm">
         <div class="form-row">
           <label for="adminContact">Admin mobile number</label>
-          <input id="adminContact" minlength="10" maxlength="15" required />
+          <input id="adminContact" minlength="10" maxlength="15" required placeholder="09XXXXXXXXX" />
         </div>
         <div class="form-row">
           <label for="adminPassword">Password</label>
-          <input id="adminPassword" type="password" minlength="8" required />
+          <input id="adminPassword" type="password" minlength="8" required placeholder="••••••••" />
         </div>
         <div class="actions">
-          <button type="submit">Log In</button>
+          <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:13px;">Log In</button>
         </div>
       </form>
-      <div id="loginStatus" class="status"></div>
+      <div id="loginStatus" class="status" style="margin-top:12px;"></div>
     </div>
   </div>
 
+  <!-- ── Dashboard layout ───────────────────────────────────────────────── -->
   <div id="dashboardLayout" class="layout">
+
     <aside class="sidebar">
-      <div class="brand">MuScanAI</div>
+      <div class="brand">
+        <div class="brand-icon">🌿</div>
+        <span class="brand-name">MuScanAI</span>
+      </div>
       <div class="brand-sub">Agriculture Admin Dashboard</div>
+      <div class="sidebar-divider"></div>
       <div class="nav">
-        <button class="tab-btn active" data-target="users-section">Users</button>
-        <button class="tab-btn" data-target="model-overview-section">Model Overview</button>
-        <button class="tab-btn" data-target="mitigations-section">Mitigations</button>
-        <button class="tab-btn" data-target="library-section">Library</button>
-        <button class="tab-btn" data-target="farm-section">Farm</button>
-        <button class="tab-btn" data-target="uploaded-content-section">User Uploaded Content</button>
+        <button class="tab-btn active" data-target="users-section">
+          <span class="nav-icon">👥</span> Users
+        </button>
+        <button class="tab-btn" data-target="model-overview-section">
+          <span class="nav-icon">📊</span> Model Overview
+        </button>
+        <button class="tab-btn" data-target="mitigations-section">
+          <span class="nav-icon">🛡️</span> Mitigations
+        </button>
+        <button class="tab-btn" data-target="library-section">
+          <span class="nav-icon">📚</span> Library
+        </button>
+        <button class="tab-btn" data-target="farm-section">
+          <span class="nav-icon">🌾</span> Farm
+        </button>
+        <button class="tab-btn" data-target="uploaded-content-section">
+          <span class="nav-icon">🔬</span> User Content
+        </button>
+      </div>
+      <div class="sidebar-footer">
+        <button id="logoutBtn" class="btn-outline" type="button" style="width:100%;justify-content:center;">
+          ↩ Log out
+        </button>
       </div>
     </aside>
 
     <main class="main">
       <div class="header">
         <div>
-          <h1>Admin Dashboard</h1>
-          <p>Secure management for users, mitigation methods, and library content.</p>
+          <div class="header-title">Admin Dashboard</div>
+          <div class="header-sub">Secure management for users, mitigation methods, and library content.</div>
         </div>
         <div class="header-right">
-          <div id="adminIdentity">-</div>
-          <button id="logoutBtn" class="btn-outline" type="button">Log out</button>
+          <div class="admin-identity" id="adminIdentity">—</div>
         </div>
       </div>
 
       <div id="status" class="status"></div>
 
+      <!-- ── Users ─────────────────────────────────────────────────────── -->
       <section id="users-section" class="section active">
         <div class="card">
           <div class="toolbar">
             <h3>User Management</h3>
             <div class="toolbar-row">
               <div class="toolbar-left">
-                <input id="usersSearch" placeholder="Search name, mobile, email, role" />
+                <input id="usersSearch" placeholder="Search name, mobile, email, role…" />
               </div>
               <div class="toolbar-actions">
-                <button id="openUserModalBtn" class="toolbar-btn" type="button">Add User</button>
+                <button id="openUserModalBtn" class="toolbar-btn btn-primary" type="button">+ Add User</button>
               </div>
             </div>
           </div>
@@ -823,13 +966,13 @@
             <table class="table">
               <thead>
                 <tr>
-                  <th style="width:56px;">Profile</th>
+                  <th style="width:52px;">Photo</th>
                   <th style="width:170px;">Name</th>
                   <th style="width:140px;">Mobile</th>
                   <th style="width:220px;">Email</th>
                   <th style="width:100px;">Role</th>
                   <th style="width:90px;">Source</th>
-                  <th style="width:120px;">Actions</th>
+                  <th style="width:100px;">Actions</th>
                 </tr>
               </thead>
               <tbody id="userRows"></tbody>
@@ -838,16 +981,17 @@
         </div>
       </section>
 
+      <!-- ── Model Overview ─────────────────────────────────────────────── -->
       <section id="model-overview-section" class="section">
         <div class="card">
           <div class="toolbar">
             <h3>Model Overview</h3>
             <div class="toolbar-row">
               <div class="toolbar-left">
-                <input id="modelOverviewSearch" placeholder="Search user, role, contact" />
+                <input id="modelOverviewSearch" placeholder="Search user, role, contact…" />
               </div>
               <div class="toolbar-actions">
-                <button id="refreshModelOverviewBtn" class="btn-outline toolbar-btn" type="button">Fetch from app now</button>
+                <button id="refreshModelOverviewBtn" class="btn-outline toolbar-btn" type="button">↻ Fetch from app</button>
               </div>
             </div>
             <div id="modelOverviewMeta" class="model-refresh-meta">Last saved metrics will be used if refresh fails.</div>
@@ -859,12 +1003,12 @@
                   <th style="width:220px;">User</th>
                   <th style="width:100px;">Role</th>
                   <th style="width:110px;">Accuracy</th>
-                  <th style="width:100px;">Scans</th>
+                  <th style="width:80px;">Scans</th>
                   <th style="width:120px;">Avg confidence</th>
-                  <th style="width:110px;">7 days</th>
-                  <th style="width:110px;">30 days</th>
-                  <th style="width:170px;">Last saved</th>
-                  <th style="width:90px;">Details</th>
+                  <th style="width:90px;">7 days</th>
+                  <th style="width:90px;">30 days</th>
+                  <th style="width:160px;">Last saved</th>
+                  <th style="width:70px;">Details</th>
                 </tr>
               </thead>
               <tbody id="modelOverviewRows"></tbody>
@@ -873,32 +1017,33 @@
         </div>
       </section>
 
+      <!-- ── Mitigations ────────────────────────────────────────────────── -->
       <section id="mitigations-section" class="section">
         <div class="card">
           <div class="toolbar">
             <h3>Mitigation Entries</h3>
-            <div class="toolbar-left">
-              <select id="mitigationFilterSeverity">
-                <option value="All">All severities</option>
-                <option>Functional</option>
-                <option>Mild</option>
-                <option>Moderate</option>
-                <option>Severe</option>
-              </select>
-            </div>
-            <div class="toolbar-actions">
-              <button id="viewMitigationArchiveBtn" class="btn-outline toolbar-btn" type="button">View previous versions</button>
+            <div class="toolbar-row">
+              <div class="toolbar-left">
+                <select id="mitigationFilterSeverity">
+                  <option value="All">All severities</option>
+                  <option>Functional</option>
+                  <option>Mild</option>
+                  <option>Moderate</option>
+                  <option>Severe</option>
+                </select>
+              </div>
+              <div class="toolbar-actions">
+                <button id="viewMitigationArchiveBtn" class="btn-outline toolbar-btn" type="button">📁 Previous versions</button>
+              </div>
             </div>
           </div>
-          <div class="help" style="margin-bottom: 10px;">
-            Hardlocked mode: only Functional, Mild, Moderate, and Severe appear. You can edit or restore one mitigation per severity.
-          </div>
+          <div class="help">Hardlocked mode: only Functional, Mild, Moderate, and Severe appear. You can edit or restore one mitigation per severity.</div>
           <div class="table-wrap">
             <table class="table">
               <thead>
                 <tr>
                   <th style="width:110px;">Severity</th>
-                  <th style="width:190px;">Title</th>
+                  <th style="width:200px;">Title</th>
                   <th>Instruction</th>
                   <th style="width:70px;">Edit</th>
                 </tr>
@@ -909,17 +1054,17 @@
         </div>
 
         <div class="card">
-          <h3 style="margin-bottom:8px;">Send Mitigation Version to App</h3>
+          <h3 style="margin-bottom:12px;">Send Mitigation Version to App</h3>
           <div class="help">Mitigation updates are delivered to mobile users only after clicking send.</div>
           <div class="table-wrap">
             <table class="table">
               <thead>
                 <tr>
                   <th style="width:110px;">Severity</th>
-                  <th style="width:100px;">Draft</th>
-                  <th style="width:100px;">Sent</th>
+                  <th style="width:90px;">Draft</th>
+                  <th style="width:90px;">Sent</th>
                   <th>Last sent</th>
-                  <th style="width:140px;">Action</th>
+                  <th style="width:120px;">Action</th>
                 </tr>
               </thead>
               <tbody id="mitigationVersionRows"></tbody>
@@ -928,16 +1073,16 @@
         </div>
 
         <div class="card">
-          <h3 style="margin-bottom:8px;">Mitigation Send History</h3>
+          <h3 style="margin-bottom:12px;">Mitigation Send History</h3>
           <div class="table-wrap">
             <table class="table">
               <thead>
                 <tr>
                   <th style="width:48px;">ID</th>
-                  <th style="width:100px;">Severity</th>
-                  <th style="width:100px;">Version</th>
+                  <th style="width:110px;">Severity</th>
+                  <th style="width:90px;">Version</th>
                   <th>Sent by</th>
-                  <th style="width:180px;">Sent at</th>
+                  <th style="width:170px;">Sent at</th>
                 </tr>
               </thead>
               <tbody id="mitigationHistoryRows"></tbody>
@@ -946,17 +1091,18 @@
         </div>
       </section>
 
+      <!-- ── Library ────────────────────────────────────────────────────── -->
       <section id="library-section" class="section">
         <div class="card">
           <div class="toolbar">
             <h3>Library Entries</h3>
             <div class="toolbar-row">
               <div class="toolbar-left">
-                <input id="librarySearch" placeholder="Search title or body" />
+                <input id="librarySearch" placeholder="Search title or body…" />
               </div>
               <div class="toolbar-actions">
-                <button id="viewLibraryArchiveBtn" class="btn-outline toolbar-btn" type="button">View previous versions</button>
-                <button id="openLibraryModalBtn" class="toolbar-btn" type="button">Add Entry</button>
+                <button id="viewLibraryArchiveBtn" class="btn-outline toolbar-btn" type="button">📁 Previous versions</button>
+                <button id="openLibraryModalBtn" class="toolbar-btn btn-primary" type="button">+ Add Entry</button>
               </div>
             </div>
           </div>
@@ -967,9 +1113,9 @@
                   <th style="width:48px;">ID</th>
                   <th style="width:200px;">Title</th>
                   <th>Body</th>
-                  <th style="width:170px;">Image</th>
-                  <th style="width:170px;">Modified</th>
-                  <th style="width:120px;">Actions</th>
+                  <th style="width:140px;">Image</th>
+                  <th style="width:160px;">Modified</th>
+                  <th style="width:100px;">Actions</th>
                 </tr>
               </thead>
               <tbody id="libraryRows"></tbody>
@@ -978,17 +1124,17 @@
         </div>
 
         <div class="card">
-          <h3 style="margin-bottom:8px;">Send Library Version to App</h3>
+          <h3 style="margin-bottom:12px;">Send Library Version to App</h3>
           <div class="help">Library updates are visible in mobile clients only after sending.</div>
           <div class="table-wrap">
             <table class="table">
               <thead>
                 <tr>
                   <th style="width:220px;">Title</th>
-                  <th style="width:100px;">Draft</th>
-                  <th style="width:100px;">Sent</th>
+                  <th style="width:90px;">Draft</th>
+                  <th style="width:90px;">Sent</th>
                   <th>Last sent</th>
-                  <th style="width:140px;">Action</th>
+                  <th style="width:120px;">Action</th>
                 </tr>
               </thead>
               <tbody id="libraryVersionRows"></tbody>
@@ -997,16 +1143,16 @@
         </div>
 
         <div class="card">
-          <h3 style="margin-bottom:8px;">Library Send History</h3>
+          <h3 style="margin-bottom:12px;">Library Send History</h3>
           <div class="table-wrap">
             <table class="table">
               <thead>
                 <tr>
                   <th style="width:48px;">ID</th>
                   <th style="width:220px;">Entry</th>
-                  <th style="width:100px;">Version</th>
+                  <th style="width:90px;">Version</th>
                   <th>Sent by</th>
-                  <th style="width:180px;">Sent at</th>
+                  <th style="width:170px;">Sent at</th>
                 </tr>
               </thead>
               <tbody id="libraryHistoryRows"></tbody>
@@ -1015,16 +1161,17 @@
         </div>
       </section>
 
+      <!-- ── Farm ───────────────────────────────────────────────────────── -->
       <section id="farm-section" class="section">
         <div class="card">
           <div class="toolbar">
             <h3>Farm Management</h3>
             <div class="toolbar-row">
               <div class="toolbar-left">
-                <input id="farmSearch" placeholder="Search farm name, address, geotag, or farmer" />
+                <input id="farmSearch" placeholder="Search farm name, address, geotag, or farmer…" />
               </div>
               <div class="toolbar-actions">
-                <button id="openFarmModalBtn" class="toolbar-btn" type="button">Add New Farm</button>
+                <button id="openFarmModalBtn" class="toolbar-btn btn-primary" type="button">+ Add Farm</button>
               </div>
             </div>
           </div>
@@ -1033,12 +1180,12 @@
               <thead>
                 <tr>
                   <th style="width:48px;">ID</th>
-                  <th style="width:220px;">Farm Name</th>
-                  <th>Farm Address</th>
-                  <th style="width:220px;">Farmer</th>
-                  <th style="width:170px;">Geotag ID</th>
-                  <th style="width:170px;">Modified</th>
-                  <th style="width:120px;">Actions</th>
+                  <th style="width:200px;">Farm Name</th>
+                  <th>Address</th>
+                  <th style="width:200px;">Farmer</th>
+                  <th style="width:150px;">Geotag ID</th>
+                  <th style="width:150px;">Modified</th>
+                  <th style="width:100px;">Actions</th>
                 </tr>
               </thead>
               <tbody id="farmRows"></tbody>
@@ -1047,13 +1194,14 @@
         </div>
       </section>
 
+      <!-- ── Uploaded content ───────────────────────────────────────────── -->
       <section id="uploaded-content-section" class="section">
         <div class="card">
           <div class="toolbar">
             <h3>User Uploaded Content</h3>
             <div class="toolbar-row">
               <div class="toolbar-left">
-                <input id="uploadedContentSearch" placeholder="Search severity, remark, user" />
+                <input id="uploadedContentSearch" placeholder="Search severity, remark, user…" />
               </div>
             </div>
           </div>
@@ -1061,13 +1209,13 @@
             <table class="table">
               <thead>
                 <tr>
-                  <th style="width:100px;">Scan Image</th>
-                  <th style="width:150px;">User</th>
+                  <th style="width:90px;">Scan Image</th>
+                  <th style="width:160px;">User</th>
                   <th style="width:220px;">Remark</th>
                   <th style="width:120px;">Severity</th>
-                  <th style="width:100px;">Mitigations</th>
-                  <th style="width:170px;">Scanned At</th>
-                  <th style="width:170px;">Uploaded At</th>
+                  <th style="width:90px;">Mitigations</th>
+                  <th style="width:160px;">Scanned At</th>
+                  <th style="width:160px;">Uploaded At</th>
                 </tr>
               </thead>
               <tbody id="uploadedContentRows"></tbody>
@@ -1078,85 +1226,61 @@
     </main>
   </div>
 
+  <!-- ── User modal ─────────────────────────────────────────────────────── -->
   <div id="userModal" class="modal">
     <div class="modal-card">
       <div class="modal-head">
         <h3 id="userFormTitle">Add User</h3>
-        <button type="button" class="btn-muted" data-close-modal="userModal">Close</button>
+        <button type="button" class="btn-muted" data-close-modal="userModal">✕ Close</button>
       </div>
       <form id="userForm">
         <input type="hidden" id="userId" />
-        <div class="form-row">
-          <label for="userName">Full name</label>
-          <input id="userName" minlength="2" maxlength="100" required />
-        </div>
-        <div class="form-row">
-          <label for="userContact">Mobile number</label>
-          <input id="userContact" minlength="10" maxlength="15" pattern="[0-9]{10,15}" required />
-        </div>
-        <div class="form-row">
-          <label for="userEmail">Email</label>
-          <input id="userEmail" type="email" />
-        </div>
-        <div class="form-row">
-          <label for="userPassword">Password (min 8 chars)</label>
-          <input id="userPassword" type="password" minlength="8" placeholder="Leave blank to keep current password" />
-        </div>
+        <div class="form-row"><label for="userName">Full name</label><input id="userName" minlength="2" maxlength="100" required placeholder="Full name" /></div>
+        <div class="form-row"><label for="userContact">Mobile number</label><input id="userContact" minlength="10" maxlength="15" pattern="[0-9]{10,15}" required placeholder="09XXXXXXXXX" /></div>
+        <div class="form-row"><label for="userEmail">Email</label><input id="userEmail" type="email" placeholder="user@email.com" /></div>
+        <div class="form-row"><label for="userPassword">Password (min 8 chars)</label><input id="userPassword" type="password" minlength="8" placeholder="Leave blank to keep current" /></div>
         <div class="form-row">
           <label for="userRole">Role</label>
-          <select id="userRole" required>
-            <option>Farmer</option>
-            <option>Researcher</option>
-            <option>Admin</option>
-            <option>Superadmin</option>
-          </select>
+          <select id="userRole" required><option>Farmer</option><option>Researcher</option><option>Admin</option><option>Superadmin</option></select>
         </div>
         <div class="form-row">
           <label for="userSource">Source</label>
-          <select id="userSource" required>
-            <option value="signup">signup</option>
-            <option value="manual" selected>manual</option>
-          </select>
+          <select id="userSource" required><option value="signup">signup</option><option value="manual" selected>manual</option></select>
         </div>
         <div class="actions">
-          <button type="submit">Save User</button>
+          <button type="submit" class="btn-primary">Save User</button>
           <button id="userResetBtn" type="button" class="btn-muted">Reset</button>
         </div>
       </form>
     </div>
   </div>
 
+  <!-- ── Mitigation modal ───────────────────────────────────────────────── -->
   <div id="mitigationModal" class="modal">
     <div class="modal-card">
       <div class="modal-head">
         <h3 id="mitigationFormTitle">Edit Mitigation</h3>
-        <button type="button" class="btn-muted" data-close-modal="mitigationModal">Close</button>
+        <button type="button" class="btn-muted" data-close-modal="mitigationModal">✕ Close</button>
       </div>
       <form id="mitigationForm">
         <input type="hidden" id="mitigationId" />
-        <div class="form-row">
-          <label for="mitigationSeverity">Severity</label>
-          <input id="mitigationSeverity" readonly />
-        </div>
-        <div class="form-row">
-          <label for="mitigationTitle">Title</label>
-          <input id="mitigationTitle" minlength="3" maxlength="200" required />
-        </div>
+        <div class="form-row"><label for="mitigationSeverity">Severity</label><input id="mitigationSeverity" readonly /></div>
+        <div class="form-row"><label for="mitigationTitle">Title</label><input id="mitigationTitle" minlength="3" maxlength="200" required placeholder="Mitigation title…" /></div>
         <div class="form-row">
           <label>Instruction</label>
           <div class="rich-toolbar">
             <button type="button" class="btn-muted" data-m-format="bold"><strong>B</strong></button>
             <button type="button" class="btn-muted" data-m-format="italic"><em>I</em></button>
             <button type="button" class="btn-muted" data-m-format="underline"><u>U</u></button>
-            <button type="button" class="btn-muted" id="mitigationInsertImageBtn">Insert image</button>
+            <button type="button" class="btn-muted" id="mitigationInsertImageBtn">+ Image</button>
             <input id="mitigationImageUploadInput" type="file" accept="image/*" style="display:none;" />
           </div>
           <div id="mitigationImageTools" class="image-tools">
             <div class="tool-group">
               <label>Align</label>
-              <button type="button" class="btn-muted" id="imgAlignLeftBtn">Left</button>
-              <button type="button" class="btn-muted" id="imgAlignCenterBtn">Center</button>
-              <button type="button" class="btn-muted" id="imgAlignRightBtn">Right</button>
+              <button type="button" class="btn-muted" id="imgAlignLeftBtn">◀ Left</button>
+              <button type="button" class="btn-muted" id="imgAlignCenterBtn">▪ Center</button>
+              <button type="button" class="btn-muted" id="imgAlignRightBtn">▶ Right</button>
             </div>
             <div class="tool-group">
               <label>Width</label>
@@ -1165,7 +1289,7 @@
             </div>
             <div class="tool-group">
               <label>Crop</label>
-              <input id="imgCropToggle" type="checkbox" />
+              <input id="imgCropToggle" type="checkbox" style="width:auto;" />
               <input id="imgCropHeightRange" type="range" min="80" max="520" step="10" value="220" />
               <span id="imgCropHeightValue" class="mini">220px</span>
             </div>
@@ -1179,26 +1303,24 @@
           <div id="mitigationInstructionEditor" class="instruction-editor" contenteditable="true"></div>
         </div>
         <div class="actions">
-          <button type="submit" data-action="save">Save Mitigation</button>
-          <button type="submit" class="btn-yellow icon-btn icon-send" data-action="save-send" title="Send mitigation">&#9992;</button>
+          <button type="submit" class="btn-primary" data-action="save">Save Mitigation</button>
+          <button type="submit" class="btn-yellow icon-btn icon-send" data-action="save-send" title="Save and send mitigation">✈</button>
         </div>
       </form>
     </div>
   </div>
 
+  <!-- ── Library modal ─────────────────────────────────────────────────── -->
   <div id="libraryModal" class="modal">
     <div class="modal-card">
       <div class="modal-head">
         <h3 id="libraryFormTitle">Create Library Entry</h3>
-        <button type="button" class="btn-muted" data-close-modal="libraryModal">Close</button>
+        <button type="button" class="btn-muted" data-close-modal="libraryModal">✕ Close</button>
       </div>
       <div class="help">Only Superadmin can create, edit, or delete library entries.</div>
       <form id="libraryForm">
         <input type="hidden" id="libraryId" />
-        <div class="form-row">
-          <label for="libraryTitle">Title</label>
-          <input id="libraryTitle" minlength="3" maxlength="200" required />
-        </div>
+        <div class="form-row"><label for="libraryTitle">Title</label><input id="libraryTitle" minlength="3" maxlength="200" required placeholder="Library entry title…" /></div>
         <div class="form-row">
           <label>Body</label>
           <div class="rich-toolbar">
@@ -1211,99 +1333,82 @@
         <div class="form-row">
           <label>Image</label>
           <input id="libraryImage" type="hidden" />
-          <div class="actions" style="margin-bottom: 8px;">
+          <div class="actions" style="margin-bottom: 10px;">
             <button id="libraryImageUploadBtn" type="button" class="btn-muted">Upload image</button>
             <input id="libraryImageUploadInput" type="file" accept="image/*" style="display:none;" />
           </div>
-          <img id="libraryImagePreview" alt="Library image preview" style="max-width:220px; max-height:160px; border-radius:10px; border:1px solid #dbe7d8; display:none;" />
+          <img id="libraryImagePreview" alt="Library image preview" style="max-width:220px; max-height:160px; border-radius:var(--radius-sm); border:0.5px solid var(--border); display:none;" />
         </div>
         <div class="form-row">
           <label for="libraryActorRole">Actor role</label>
-          <select id="libraryActorRole">
-            <option>Superadmin</option>
-            <option>Admin</option>
-            <option>Researcher</option>
-            <option>Farmer</option>
-          </select>
+          <select id="libraryActorRole"><option>Superadmin</option><option>Admin</option><option>Researcher</option><option>Farmer</option></select>
         </div>
         <div class="actions">
-          <button type="submit" data-action="save">Save Entry</button>
-          <button type="submit" class="btn-yellow icon-btn icon-send" data-action="save-send" title="Send library">&#9992;</button>
+          <button type="submit" class="btn-primary" data-action="save">Save Entry</button>
+          <button type="submit" class="btn-yellow icon-btn icon-send" data-action="save-send" title="Save and send library">✈</button>
           <button id="libraryResetBtn" type="button" class="btn-muted">Reset</button>
         </div>
       </form>
     </div>
   </div>
 
+  <!-- ── Farm modal ────────────────────────────────────────────────────── -->
   <div id="farmModal" class="modal">
     <div class="modal-card">
       <div class="modal-head">
         <h3 id="farmFormTitle">Add New Farm</h3>
-        <button type="button" class="btn-muted" data-close-modal="farmModal">Close</button>
+        <button type="button" class="btn-muted" data-close-modal="farmModal">✕ Close</button>
       </div>
       <div class="help">Only Superadmin can create, edit, or delete farm entries.</div>
       <form id="farmForm">
         <input type="hidden" id="farmId" />
-        <div class="form-row">
-          <label for="farmName">Farm Name</label>
-          <input id="farmName" minlength="2" maxlength="200" required />
-        </div>
-        <div class="form-row">
-          <label for="farmAddress">Farm Address</label>
-          <textarea id="farmAddress" minlength="5" maxlength="500" rows="3" required></textarea>
-        </div>
-        <div class="form-row">
-          <label for="farmFarmerUserId">Farmer</label>
-          <select id="farmFarmerUserId" required></select>
-        </div>
-        <div class="form-row">
-          <label for="farmGeotagId">Geotag ID</label>
-          <input id="farmGeotagId" minlength="1" maxlength="120" required />
-        </div>
+        <div class="form-row"><label for="farmName">Farm Name</label><input id="farmName" minlength="2" maxlength="200" required placeholder="e.g. Santos Banana Farm" /></div>
+        <div class="form-row"><label for="farmAddress">Farm Address</label><textarea id="farmAddress" minlength="5" maxlength="500" rows="3" required placeholder="Full address…"></textarea></div>
+        <div class="form-row"><label for="farmFarmerUserId">Farmer</label><select id="farmFarmerUserId" required></select></div>
+        <div class="form-row"><label for="farmGeotagId">Geotag ID</label><input id="farmGeotagId" minlength="1" maxlength="120" required placeholder="Geotag identifier" /></div>
         <div class="form-row">
           <label for="farmActorRole">Actor role</label>
-          <select id="farmActorRole">
-            <option>Superadmin</option>
-            <option>Admin</option>
-            <option>Researcher</option>
-            <option>Farmer</option>
-          </select>
+          <select id="farmActorRole"><option>Superadmin</option><option>Admin</option><option>Researcher</option><option>Farmer</option></select>
         </div>
         <div class="actions">
-          <button type="submit">Save Farm</button>
+          <button type="submit" class="btn-primary">Save Farm</button>
           <button id="farmResetBtn" type="button" class="btn-muted">Reset</button>
         </div>
       </form>
     </div>
   </div>
 
+  <!-- ── Archive modal ─────────────────────────────────────────────────── -->
   <div id="archiveModal" class="modal">
     <div class="modal-card">
       <div class="modal-head">
         <h3 id="archiveTitle">Previous Versions</h3>
-        <button type="button" class="btn-muted" data-close-modal="archiveModal">Close</button>
+        <button type="button" class="btn-muted" data-close-modal="archiveModal">✕ Close</button>
       </div>
       <div id="archiveContent" class="small"></div>
     </div>
   </div>
 
+  <!-- ── Model overview detail modal ───────────────────────────────────── -->
   <div id="modelOverviewModal" class="modal">
     <div class="modal-card">
       <div class="modal-head">
         <h3 id="modelOverviewModalTitle">Model Overview Details</h3>
-        <button type="button" class="btn-muted" data-close-modal="modelOverviewModal">Close</button>
+        <button type="button" class="btn-muted" data-close-modal="modelOverviewModal">✕ Close</button>
       </div>
       <div id="modelOverviewDetailBody" class="small"></div>
     </div>
   </div>
 
+  <!-- ── Image lightbox modal ───────────────────────────────────────────── -->
   <div id="imageModal" class="image-modal">
     <div class="image-modal-content">
-      <button type="button" class="image-modal-close" id="imageModalClose">&times;</button>
+      <button type="button" class="image-modal-close" id="imageModalClose">✕</button>
       <img id="imageModalImg" class="image-modal-img" src="" alt="Full view" />
     </div>
   </div>
 
+  <!-- ── All JS logic preserved verbatim ───────────────────────────────── -->
   <script>
     const normalizeApiBase = (value) => String(value || '').trim().replace(/\/+$/, '');
 
@@ -1311,20 +1416,15 @@
       const fromQuery = new URLSearchParams(window.location.search).get('api');
       if (fromQuery && fromQuery.trim()) {
         const normalized = normalizeApiBase(fromQuery);
-        try {
-          localStorage.setItem('muscan.admin.apiBase', normalized);
-        } catch (_) {}
+        try { localStorage.setItem('muscan.admin.apiBase', normalized); } catch (_) {}
         return normalized;
       }
-
       const fromGlobal = normalizeApiBase(window.MUSCAN_API_BASE || '');
       if (fromGlobal) return fromGlobal;
-
       try {
         const fromStorage = normalizeApiBase(localStorage.getItem('muscan.admin.apiBase') || '');
         if (fromStorage) return fromStorage;
       } catch (_) {}
-
       return '';
     };
 
@@ -1349,15 +1449,8 @@
     const ADMIN_SESSION_KEY = 'muscan.admin.session';
 
     const state = {
-      token: null,
-      user: null,
-      users: [],
-      mitigations: [],
-      library: [],
-      farms: [],
-      uploadedContent: [],
-      modelOverview: [],
-      modelOverviewRefresh: null,
+      token: null, user: null, users: [], mitigations: [], library: [],
+      farms: [], uploadedContent: [], modelOverview: [], modelOverviewRefresh: null,
     };
     let modelOverviewTimer = null;
 
@@ -1377,11 +1470,8 @@
     };
 
     const esc = (value) => String(value ?? '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
+      .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 
     const fmtDate = (raw) => (raw ? new Date(`${raw}Z`).toLocaleString() : '-');
 
@@ -1390,9 +1480,7 @@
       const raw = String(url).trim();
       if (!raw) return '';
       if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) return raw;
-      if (raw.startsWith('/')) {
-        return toApiUrl(raw);
-      }
+      if (raw.startsWith('/')) return toApiUrl(raw);
       return raw;
     };
 
@@ -1410,12 +1498,8 @@
         ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}),
         ...(init.headers || {}),
       };
-
       const res = await fetch(toApiUrl(url), { ...init, headers });
-      if (!res.ok) {
-        const detail = await res.text();
-        throw new Error(detail || `HTTP ${res.status}`);
-      }
+      if (!res.ok) { const detail = await res.text(); throw new Error(detail || `HTTP ${res.status}`); }
       if (res.status === 204) return null;
       return res.json();
     };
@@ -1427,8 +1511,7 @@
 
     const clearSession = () => {
       localStorage.removeItem(ADMIN_SESSION_KEY);
-      state.token = null;
-      state.user = null;
+      state.token = null; state.user = null;
     };
 
     const ensureAdminRole = (user) => user && (user.role === 'Admin' || user.role === 'Superadmin');
@@ -1436,7 +1519,7 @@
     const showDashboard = () => {
       loginGate.style.display = 'none';
       dashboardLayout.style.display = 'grid';
-      document.getElementById('adminIdentity').textContent = `${state.user.name} (${state.user.role})`;
+      document.getElementById('adminIdentity').textContent = `${state.user.name} · ${state.user.role}`;
     };
 
     const showLogin = () => {
@@ -1445,16 +1528,10 @@
     };
 
     const startModelOverviewAutoRefresh = () => {
-      if (modelOverviewTimer) {
-        clearInterval(modelOverviewTimer);
-      }
+      if (modelOverviewTimer) clearInterval(modelOverviewTimer);
       modelOverviewTimer = setInterval(async () => {
         if (!state.token) return;
-        try {
-          await loadModelOverview(true, true);
-        } catch (_) {
-          // Keep last saved values if refresh fails.
-        }
+        try { await loadModelOverview(true, true); } catch (_) {}
       }, 60 * 60 * 1000);
     };
 
@@ -1467,24 +1544,14 @@
     const verifyStoredSession = async () => {
       const raw = localStorage.getItem(ADMIN_SESSION_KEY);
       if (!raw) return false;
-
       try {
         const parsed = JSON.parse(raw);
         state.token = parsed.token;
-        const data = await apiFetch('/api/auth/session', {
-          method: 'POST',
-          body: JSON.stringify({ token: parsed.token }),
-        });
-        if (!data.valid || !ensureAdminRole(data.user)) {
-          clearSession();
-          return false;
-        }
+        const data = await apiFetch('/api/auth/session', { method: 'POST', body: JSON.stringify({ token: parsed.token }) });
+        if (!data.valid || !ensureAdminRole(data.user)) { clearSession(); return false; }
         state.user = data.user;
         return true;
-      } catch {
-        clearSession();
-        return false;
-      }
+      } catch { clearSession(); return false; }
     };
 
     document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
@@ -1492,44 +1559,21 @@
       setLoginStatus('');
       const contact = document.getElementById('adminContact').value.trim();
       const password = document.getElementById('adminPassword').value.trim();
-
       try {
-        const data = await apiFetch('/api/auth/login', {
-          method: 'POST',
-          body: JSON.stringify({ contact_number: contact, password }),
-        });
-
-        if (!ensureAdminRole(data.user)) {
-          throw new Error('Only Admin and Superadmin can access this dashboard.');
-        }
-
-        state.token = data.token;
-        state.user = data.user;
-        saveSession();
-        showDashboard();
-        startModelOverviewAutoRefresh();
+        const data = await apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ contact_number: contact, password }) });
+        if (!ensureAdminRole(data.user)) throw new Error('Only Admin and Superadmin can access this dashboard.');
+        state.token = data.token; state.user = data.user;
+        saveSession(); showDashboard(); startModelOverviewAutoRefresh();
         setStatus('Welcome. Dashboard unlocked.');
         await loadEverything();
-      } catch (err) {
-        setLoginStatus(err.message || 'Login failed');
-      }
+      } catch (err) { setLoginStatus(err.message || 'Login failed'); }
     });
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
       try {
-        if (state.token) {
-          await apiFetch('/api/auth/logout', {
-            method: 'POST',
-            body: JSON.stringify({ token: state.token }),
-          });
-        }
-      } catch {
-        // Ignore network errors on logout.
-      }
-      clearSession();
-      stopModelOverviewAutoRefresh();
-      showLogin();
-      setStatus('');
+        if (state.token) await apiFetch('/api/auth/logout', { method: 'POST', body: JSON.stringify({ token: state.token }) });
+      } catch {}
+      clearSession(); stopModelOverviewAutoRefresh(); showLogin(); setStatus('');
     });
 
     const initTabs = () => {
@@ -1548,23 +1592,16 @@
     };
 
     const userFields = {
-      id: document.getElementById('userId'),
-      name: document.getElementById('userName'),
-      contact: document.getElementById('userContact'),
-      email: document.getElementById('userEmail'),
-      password: document.getElementById('userPassword'),
-      role: document.getElementById('userRole'),
+      id: document.getElementById('userId'), name: document.getElementById('userName'),
+      contact: document.getElementById('userContact'), email: document.getElementById('userEmail'),
+      password: document.getElementById('userPassword'), role: document.getElementById('userRole'),
       source: document.getElementById('userSource'),
     };
 
     const resetUserForm = () => {
-      userFields.id.value = '';
-      userFields.name.value = '';
-      userFields.contact.value = '';
-      userFields.email.value = '';
-      userFields.password.value = '';
-      userFields.role.value = 'Farmer';
-      userFields.source.value = 'manual';
+      userFields.id.value = ''; userFields.name.value = ''; userFields.contact.value = '';
+      userFields.email.value = ''; userFields.password.value = '';
+      userFields.role.value = 'Farmer'; userFields.source.value = 'manual';
       document.getElementById('userFormTitle').textContent = 'Add User';
     };
 
@@ -1574,7 +1611,6 @@
         if (!term) return true;
         return [u.name, u.contact_number, u.email, u.role, u.source].some((v) => String(v || '').toLowerCase().includes(term));
       });
-
       const el = document.getElementById('userRows');
       el.innerHTML = '';
       rows.forEach((u) => {
@@ -1582,36 +1618,25 @@
         const profileImageUrl = resolveApiImageUrl(u.profile_image || '');
         const profilePic = u.profile_image && u.profile_image.trim()
           ? `<img src="${esc(profileImageUrl)}" alt="${esc(u.name)}" class="profile-avatar" />`
-          : `<div class="profile-avatar" style="background: linear-gradient(135deg, #3e8f43, #2f6d35); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">${esc(u.name.charAt(0).toUpperCase())}</div>`;
+          : `<div class="profile-avatar">${esc(u.name.charAt(0).toUpperCase())}</div>`;
         tr.innerHTML = `
           <td>${profilePic}</td>
-          <td>${esc(u.name)}</td>
+          <td style="color:var(--text-primary);font-weight:500;">${esc(u.name)}</td>
           <td>${esc(u.contact_number || '-')}</td>
           <td>${esc(u.email || '-')}</td>
           <td><span class="chip ${u.role}">${esc(u.role)}</span></td>
           <td>${esc(u.source)}</td>
-          <td>
-            <div class="icon-actions">
-              <button class="icon-btn icon-edit" title="Edit user" data-user-edit="${u.id}">&#9998;</button>
-              <button class="icon-btn icon-delete" title="Delete user" data-user-del="${u.id}">&#128465;</button>
-            </div>
-          </td>
-        `;
+          <td><div class="icon-actions">
+            <button class="icon-btn icon-edit" title="Edit user" data-user-edit="${u.id}">✎</button>
+            <button class="icon-btn icon-delete" title="Delete user" data-user-del="${u.id}">🗑</button>
+          </div></td>`;
         el.appendChild(tr);
       });
     };
 
-    const loadUsers = async () => {
-      state.users = await apiFetch(USERS_API);
-      renderUsers();
-      refreshFarmFarmerOptions();
-    };
+    const loadUsers = async () => { state.users = await apiFetch(USERS_API); renderUsers(); refreshFarmFarmerOptions(); };
 
-    const fmtPct = (value) => {
-      const n = Number(value);
-      if (!Number.isFinite(n)) return '-';
-      return `${n.toFixed(1)}%`;
-    };
+    const fmtPct = (value) => { const n = Number(value); if (!Number.isFinite(n)) return '-'; return `${n.toFixed(1)}%`; };
 
     const getModelOverviewMetaText = () => {
       const refresh = state.modelOverviewRefresh;
@@ -1626,24 +1651,17 @@
       const searchTerm = document.getElementById('modelOverviewSearch').value.trim().toLowerCase();
       const rows = state.modelOverview.filter((row) => {
         if (!searchTerm) return true;
-        return [row.user_name, row.user_contact_number, row.user_role]
-          .some((value) => String(value || '').toLowerCase().includes(searchTerm));
+        return [row.user_name, row.user_contact_number, row.user_role].some((value) => String(value || '').toLowerCase().includes(searchTerm));
       });
-
       const el = document.getElementById('modelOverviewRows');
       const metaEl = document.getElementById('modelOverviewMeta');
       metaEl.textContent = getModelOverviewMetaText();
       el.innerHTML = '';
-
-      if (!rows.length) {
-        el.innerHTML = '<tr><td colspan="9" class="model-empty">No model overview records yet.</td></tr>';
-        return;
-      }
-
+      if (!rows.length) { el.innerHTML = '<tr><td colspan="9" class="model-empty">No model overview records yet.</td></tr>'; return; }
       rows.forEach((row) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><strong>${esc(row.user_name || 'Unknown')}</strong><br><span class="small">${esc(row.user_contact_number || '-')}</span></td>
+          <td><strong style="color:var(--text-primary);">${esc(row.user_name || 'Unknown')}</strong><br><span class="small">${esc(row.user_contact_number || '-')}</span></td>
           <td><span class="chip ${esc(row.user_role || 'Farmer')}">${esc(row.user_role || '-')}</span></td>
           <td><span class="model-score">${fmtPct(row.overall_accuracy)}</span></td>
           <td>${Number(row.total_scans || 0)}</td>
@@ -1651,8 +1669,7 @@
           <td>${fmtPct(row.last7_accuracy || 0)}</td>
           <td>${fmtPct(row.last30_accuracy || 0)}</td>
           <td>${fmtDate(row.updated_at || row.fetched_at || row.source_updated_at)}</td>
-          <td><button class="icon-btn icon-edit" title="View details" data-mo-view="${row.user_id}">&#128065;</button></td>
-        `;
+          <td><button class="icon-btn icon-edit" title="View details" data-mo-view="${row.user_id}">👁</button></td>`;
         el.appendChild(tr);
       });
     };
@@ -1660,72 +1677,42 @@
     const openModelOverviewDetail = (userId) => {
       const row = state.modelOverview.find((item) => String(item.user_id) === String(userId));
       if (!row) return;
-
       document.getElementById('modelOverviewModalTitle').textContent = `Model Overview: ${row.user_name || 'Unknown user'}`;
-
       const trend = Array.isArray(row.trend) ? row.trend : [];
       const trendMax = Math.max(1, ...trend.map((item) => Number(item.accuracy || 0)));
       const severity = row.severity_distribution || {};
       const confidence = row.confidence_distribution || {};
       const topIssues = Array.isArray(row.top_issues) ? row.top_issues : [];
-
       const trendHtml = trend.length
         ? trend.map((item) => {
-          const value = Number(item.accuracy || 0);
-          const h = Math.max(6, Math.round((value / trendMax) * 100));
-          return `
-            <div class="overview-bar-col">
-              <div class="overview-bar-track">
-                <div class="overview-bar-fill" style="height:${h}%;"></div>
-              </div>
-              <div class="small">${fmtPct(value)}</div>
-            </div>
-          `;
-        }).join('')
+            const value = Number(item.accuracy || 0);
+            const h = Math.max(6, Math.round((value / trendMax) * 100));
+            return `<div class="overview-bar-col"><div class="overview-bar-track"><div class="overview-bar-fill" style="height:${h}%;"></div></div><div class="small">${fmtPct(value)}</div></div>`;
+          }).join('')
         : '<div class="small">No trend data available.</div>';
-
-      const severityHtml = ['Functional', 'Mild', 'Moderate', 'Severe']
-        .map((key) => `<span class="chip ${key}">${key}: ${Number(severity[key] || 0)}</span>`)
-        .join('');
-
-      const confidenceHtml = ['veryHigh', 'high', 'medium', 'low']
-        .map((key) => `<span class="chip">${esc(key)}: ${Number(confidence[key] || 0)}</span>`)
-        .join('');
-
+      const severityHtml = ['Functional', 'Mild', 'Moderate', 'Severe'].map((key) => `<span class="chip ${key}">${key}: ${Number(severity[key] || 0)}</span>`).join('');
+      const confidenceHtml = ['veryHigh', 'high', 'medium', 'low'].map((key) => `<span class="chip">${esc(key)}: ${Number(confidence[key] || 0)}</span>`).join('');
       const issuesHtml = topIssues.length
         ? topIssues.map((issue) => {
-          const pct = Math.max(0, Number(issue.percentage || 0));
-          return `
-            <div class="overview-issue-row">
-              <div class="overview-issue-meta">
-                <span>${esc(issue.severity || 'Unknown')}</span>
-                <span>${pct.toFixed(1)}%</span>
-              </div>
-              <div class="overview-issue-track">
-                <div class="overview-issue-fill" style="width:${Math.max(2, pct)}%;"></div>
-              </div>
-            </div>
-          `;
-        }).join('')
+            const pct = Math.max(0, Number(issue.percentage || 0));
+            return `<div class="overview-issue-row"><div class="overview-issue-meta"><span>${esc(issue.severity || 'Unknown')}</span><span>${pct.toFixed(1)}%</span></div><div class="overview-issue-track"><div class="overview-issue-fill" style="width:${Math.max(2, pct)}%;"></div></div></div>`;
+          }).join('')
         : '<div class="small">No issue distribution yet.</div>';
-
       document.getElementById('modelOverviewDetailBody').innerHTML = `
         <div class="overview-detail-grid">
           <div class="overview-detail-tile"><div class="k">Overall Accuracy</div><div class="v">${fmtPct(row.overall_accuracy)}</div></div>
           <div class="overview-detail-tile"><div class="k">Total Scans</div><div class="v">${Number(row.total_scans || 0)}</div></div>
-          <div class="overview-detail-tile"><div class="k">Average Confidence</div><div class="v">${row.average_confidence == null ? '-' : fmtPct(row.average_confidence)}</div></div>
+          <div class="overview-detail-tile"><div class="k">Avg Confidence</div><div class="v">${row.average_confidence == null ? '-' : fmtPct(row.average_confidence)}</div></div>
           <div class="overview-detail-tile"><div class="k">Updated</div><div class="v" style="font-size:14px;">${esc(fmtDate(row.updated_at || row.fetched_at || row.source_updated_at))}</div></div>
         </div>
-        <h4 style="margin:6px 0 8px;">Accuracy Trends</h4>
+        <h4 style="margin:8px 0;color:var(--text-soft);font-weight:600;font-size:13px;">Accuracy Trends</h4>
         <div class="overview-bars">${trendHtml}</div>
-        <h4 style="margin:6px 0 8px;">Severity Distribution</h4>
+        <h4 style="margin:8px 0;color:var(--text-soft);font-weight:600;font-size:13px;">Severity Distribution</h4>
         <div class="overview-chip-row">${severityHtml}</div>
-        <h4 style="margin:6px 0 8px;">Model Confidence</h4>
+        <h4 style="margin:8px 0;color:var(--text-soft);font-weight:600;font-size:13px;">Model Confidence</h4>
         <div class="overview-chip-row">${confidenceHtml}</div>
-        <h4 style="margin:6px 0 8px;">Top Detected Issues</h4>
-        <div>${issuesHtml}</div>
-      `;
-
+        <h4 style="margin:8px 0;color:var(--text-soft);font-weight:600;font-size:13px;">Top Detected Issues</h4>
+        <div>${issuesHtml}</div>`;
       openModal('modelOverviewModal');
     };
 
@@ -1735,7 +1722,6 @@
       state.modelOverview = Array.isArray(data.items) ? data.items : [];
       state.modelOverviewRefresh = data.refresh || null;
       renderModelOverview();
-
       if (forceRefresh && !silent) {
         const statusKind = data?.refresh?.status === 'err' ? 'err' : 'ok';
         setStatus(data?.refresh?.message || 'Model overview fetch completed.', statusKind);
@@ -1744,13 +1730,9 @@
 
     document.getElementById('modelOverviewSearch').addEventListener('input', renderModelOverview);
     document.getElementById('refreshModelOverviewBtn').addEventListener('click', async () => {
-      try {
-        await loadModelOverview(true, false);
-      } catch (err) {
-        setStatus(err.message || 'Failed to refresh model overview. Showing last saved values.', 'err');
-      }
+      try { await loadModelOverview(true, false); }
+      catch (err) { setStatus(err.message || 'Failed to refresh model overview.', 'err'); }
     });
-
     document.getElementById('modelOverviewRows').addEventListener('click', async (e) => {
       const userId = e.target.getAttribute('data-mo-view');
       if (!userId) return;
@@ -1758,10 +1740,7 @@
     });
 
     document.getElementById('usersSearch').addEventListener('input', renderUsers);
-    document.getElementById('openUserModalBtn').addEventListener('click', () => {
-      resetUserForm();
-      openModal('userModal');
-    });
+    document.getElementById('openUserModalBtn').addEventListener('click', () => { resetUserForm(); openModal('userModal'); });
     document.getElementById('userResetBtn').addEventListener('click', resetUserForm);
 
     document.getElementById('userRows').addEventListener('click', async (e) => {
@@ -1769,21 +1748,16 @@
       const delId = e.target.getAttribute('data-user-del');
       if (editId) {
         const u = await apiFetch(`${USERS_API}/${editId}`);
-        userFields.id.value = u.id;
-        userFields.name.value = u.name;
-        userFields.contact.value = u.contact_number || '';
-        userFields.email.value = u.email || '';
-        userFields.password.value = '';
-        userFields.role.value = u.role;
-        userFields.source.value = u.source;
+        userFields.id.value = u.id; userFields.name.value = u.name;
+        userFields.contact.value = u.contact_number || ''; userFields.email.value = u.email || '';
+        userFields.password.value = ''; userFields.role.value = u.role; userFields.source.value = u.source;
         document.getElementById('userFormTitle').textContent = `Edit User #${u.id}`;
         openModal('userModal');
       }
       if (delId) {
         if (!confirm(`Delete user #${delId}?`)) return;
         await apiFetch(`${USERS_API}/${delId}`, { method: 'DELETE' });
-        setStatus('User deleted.');
-        await loadUsers();
+        setStatus('User deleted.'); await loadUsers();
       }
     });
 
@@ -1791,68 +1765,40 @@
       e.preventDefault();
       const id = userFields.id.value;
       const payload = {
-        name: userFields.name.value.trim(),
-        contact_number: userFields.contact.value.trim(),
-        email: userFields.email.value.trim() || null,
-        role: userFields.role.value,
+        name: userFields.name.value.trim(), contact_number: userFields.contact.value.trim(),
+        email: userFields.email.value.trim() || null, role: userFields.role.value,
         ...(userFields.password.value.trim() ? { password: userFields.password.value.trim() } : {}),
       };
-
-      if (id) {
-        await apiFetch(`${USERS_API}/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
-        setStatus('User updated.');
-      } else if (userFields.source.value === 'signup') {
-        await apiFetch(`${USERS_API}/signup`, { method: 'POST', body: JSON.stringify(payload) });
-        setStatus('User added from signup source.');
-      } else {
-        await apiFetch(`${USERS_API}/manual`, { method: 'POST', body: JSON.stringify({ ...payload, actor_role: 'Superadmin' }) });
-        setStatus('User added manually.');
-      }
-
-      closeModal('userModal');
-      resetUserForm();
-      await loadUsers();
+      if (id) { await apiFetch(`${USERS_API}/${id}`, { method: 'PUT', body: JSON.stringify(payload) }); setStatus('User updated.'); }
+      else if (userFields.source.value === 'signup') { await apiFetch(`${USERS_API}/signup`, { method: 'POST', body: JSON.stringify(payload) }); setStatus('User added from signup source.'); }
+      else { await apiFetch(`${USERS_API}/manual`, { method: 'POST', body: JSON.stringify({ ...payload, actor_role: 'Superadmin' }) }); setStatus('User added manually.'); }
+      closeModal('userModal'); resetUserForm(); await loadUsers();
     });
 
     const mitigationFields = {
-      id: document.getElementById('mitigationId'),
-      severity: document.getElementById('mitigationSeverity'),
-      title: document.getElementById('mitigationTitle'),
-      instructionEditor: document.getElementById('mitigationInstructionEditor'),
-      imageInput: document.getElementById('mitigationImageUploadInput'),
-      imageTools: document.getElementById('mitigationImageTools'),
-      imgAlignLeftBtn: document.getElementById('imgAlignLeftBtn'),
-      imgAlignCenterBtn: document.getElementById('imgAlignCenterBtn'),
-      imgAlignRightBtn: document.getElementById('imgAlignRightBtn'),
-      imgWidthRange: document.getElementById('imgWidthRange'),
-      imgWidthValue: document.getElementById('imgWidthValue'),
-      imgCropToggle: document.getElementById('imgCropToggle'),
-      imgCropHeightRange: document.getElementById('imgCropHeightRange'),
-      imgCropHeightValue: document.getElementById('imgCropHeightValue'),
-      imgPosXRange: document.getElementById('imgPosXRange'),
-      imgPosYRange: document.getElementById('imgPosYRange'),
+      id: document.getElementById('mitigationId'), severity: document.getElementById('mitigationSeverity'),
+      title: document.getElementById('mitigationTitle'), instructionEditor: document.getElementById('mitigationInstructionEditor'),
+      imageInput: document.getElementById('mitigationImageUploadInput'), imageTools: document.getElementById('mitigationImageTools'),
+      imgAlignLeftBtn: document.getElementById('imgAlignLeftBtn'), imgAlignCenterBtn: document.getElementById('imgAlignCenterBtn'),
+      imgAlignRightBtn: document.getElementById('imgAlignRightBtn'), imgWidthRange: document.getElementById('imgWidthRange'),
+      imgWidthValue: document.getElementById('imgWidthValue'), imgCropToggle: document.getElementById('imgCropToggle'),
+      imgCropHeightRange: document.getElementById('imgCropHeightRange'), imgCropHeightValue: document.getElementById('imgCropHeightValue'),
+      imgPosXRange: document.getElementById('imgPosXRange'), imgPosYRange: document.getElementById('imgPosYRange'),
     };
 
     let activeEditorImage = null;
 
     const clearActiveEditorImage = () => {
-      if (activeEditorImage) {
-        activeEditorImage.classList.remove('selected-editor-image');
-      }
+      if (activeEditorImage) activeEditorImage.classList.remove('selected-editor-image');
       activeEditorImage = null;
       mitigationFields.imageTools.classList.remove('open');
     };
 
     const setImageAlignment = (img, align) => {
-      img.dataset.align = align;
-      img.style.display = 'block';
-      if (align === 'left') {
-        img.style.margin = '8px auto 8px 0';
-      } else if (align === 'right') {
-        img.style.margin = '8px 0 8px auto';
-      } else {
-        img.style.margin = '8px auto';
-      }
+      img.dataset.align = align; img.style.display = 'block';
+      if (align === 'left') img.style.margin = '8px auto 8px 0';
+      else if (align === 'right') img.style.margin = '8px 0 8px auto';
+      else img.style.margin = '8px auto';
     };
 
     const syncImageToolValues = (img) => {
@@ -1862,7 +1808,6 @@
       const [x, y] = (img.style.objectPosition || '50% 50%').split(' ');
       const posX = Number.parseInt(String(x || '50').replace('%', ''), 10);
       const posY = Number.parseInt(String(y || '50').replace('%', ''), 10);
-
       mitigationFields.imgWidthRange.value = String(Number.isFinite(currentWidth) ? currentWidth : 320);
       mitigationFields.imgWidthValue.textContent = `${mitigationFields.imgWidthRange.value}px`;
       mitigationFields.imgCropToggle.checked = isCrop;
@@ -1874,19 +1819,15 @@
 
     const applyImageToolsToActive = () => {
       if (!activeEditorImage) return;
-
       const width = Number.parseInt(mitigationFields.imgWidthRange.value, 10);
       const crop = Boolean(mitigationFields.imgCropToggle.checked);
       const cropHeight = Number.parseInt(mitigationFields.imgCropHeightRange.value, 10);
       const posX = Number.parseInt(mitigationFields.imgPosXRange.value, 10);
       const posY = Number.parseInt(mitigationFields.imgPosYRange.value, 10);
-
       activeEditorImage.style.width = `${Math.max(120, width || 320)}px`;
       activeEditorImage.style.maxWidth = '100%';
-
       mitigationFields.imgWidthValue.textContent = `${mitigationFields.imgWidthRange.value}px`;
       mitigationFields.imgCropHeightValue.textContent = `${mitigationFields.imgCropHeightRange.value}px`;
-
       if (crop) {
         activeEditorImage.style.height = `${Math.max(80, cropHeight || 220)}px`;
         activeEditorImage.style.objectFit = 'cover';
@@ -1899,37 +1840,19 @@
     };
 
     const setActiveEditorImage = (img) => {
-      if (!img || img.tagName !== 'IMG') {
-        clearActiveEditorImage();
-        return;
-      }
-
-      if (activeEditorImage && activeEditorImage !== img) {
-        activeEditorImage.classList.remove('selected-editor-image');
-      }
-
+      if (!img || img.tagName !== 'IMG') { clearActiveEditorImage(); return; }
+      if (activeEditorImage && activeEditorImage !== img) activeEditorImage.classList.remove('selected-editor-image');
       activeEditorImage = img;
       activeEditorImage.classList.add('selected-editor-image');
       mitigationFields.imageTools.classList.add('open');
-
-      if (!activeEditorImage.style.width) {
-        activeEditorImage.style.width = '320px';
-      }
-      if (!activeEditorImage.style.maxWidth) {
-        activeEditorImage.style.maxWidth = '100%';
-      }
-      if (!activeEditorImage.dataset.align) {
-        setImageAlignment(activeEditorImage, 'center');
-      }
-
+      if (!activeEditorImage.style.width) activeEditorImage.style.width = '320px';
+      if (!activeEditorImage.style.maxWidth) activeEditorImage.style.maxWidth = '100%';
+      if (!activeEditorImage.dataset.align) setImageAlignment(activeEditorImage, 'center');
       syncImageToolValues(activeEditorImage);
     };
 
     const mInstructionHtml = () => mitigationFields.instructionEditor.innerHTML.trim();
-    const setMInstructionHtml = (htmlValue) => {
-      mitigationFields.instructionEditor.innerHTML = htmlValue || '<p></p>';
-      clearActiveEditorImage();
-    };
+    const setMInstructionHtml = (htmlValue) => { mitigationFields.instructionEditor.innerHTML = htmlValue || '<p></p>'; clearActiveEditorImage(); };
 
     const instructionPreview = (htmlValue) => {
       const wrap = document.createElement('div');
@@ -1941,8 +1864,7 @@
     };
 
     const openMitigationEditor = (m) => {
-      mitigationFields.id.value = m.id;
-      mitigationFields.severity.value = m.severity;
+      mitigationFields.id.value = m.id; mitigationFields.severity.value = m.severity;
       mitigationFields.title.value = m.title;
       setMInstructionHtml(m.instruction || m.description || '');
       document.getElementById('mitigationFormTitle').textContent = `Edit ${m.severity} Mitigation`;
@@ -1950,10 +1872,8 @@
     };
 
     const resetMitigationForm = () => {
-      mitigationFields.id.value = '';
-      mitigationFields.severity.value = '';
-      mitigationFields.title.value = '';
-      setMInstructionHtml('');
+      mitigationFields.id.value = ''; mitigationFields.severity.value = '';
+      mitigationFields.title.value = ''; setMInstructionHtml('');
       document.getElementById('mitigationFormTitle').textContent = 'Edit Mitigation';
       clearActiveEditorImage();
     };
@@ -1966,14 +1886,9 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><span class="chip ${m.severity}">${esc(m.severity)}</span></td>
-          <td>${esc(m.title)}</td>
+          <td style="color:var(--text-primary);font-weight:500;">${esc(m.title)}</td>
           <td><div class="instruction-preview">${instructionPreview(m.instruction || m.description)}</div></td>
-          <td>
-            <div class="icon-actions">
-              <button class="icon-btn icon-edit" title="Edit mitigation" data-m-edit="${m.id}">&#9998;</button>
-            </div>
-          </td>
-        `;
+          <td><div class="icon-actions"><button class="icon-btn icon-edit" title="Edit mitigation" data-m-edit="${m.id}">✎</button></div></td>`;
         el.appendChild(tr);
       });
     };
@@ -1985,13 +1900,9 @@
     };
 
     const sendMitigationSeverity = async (severity) => {
-      const sent = await apiFetch(`${MITIGATIONS_API}/send/${severity}`, {
-        method: 'POST',
-        body: JSON.stringify({ actor_role: 'Admin', actor_name: state.user?.name || 'Dashboard Admin' }),
-      });
+      const sent = await apiFetch(`${MITIGATIONS_API}/send/${severity}`, { method: 'POST', body: JSON.stringify({ actor_role: 'Admin', actor_name: state.user?.name || 'Dashboard Admin' }) });
       setStatus(sent.sent ? `Mitigation ${severity} v${sent.sent_version} sent.` : sent.message || 'Nothing new to send.');
-      await loadMitigationVersions();
-      await loadMitigationHistory();
+      await loadMitigationVersions(); await loadMitigationHistory();
     };
 
     const loadMitigationVersions = async () => {
@@ -2005,11 +1916,9 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><span class="chip ${sev}">${sev}</span></td>
-          <td>v${v.draft_version}</td>
-          <td>v${v.sent_version}</td>
+          <td>v${v.draft_version}</td><td>v${v.sent_version}</td>
           <td>${v.sent_at ? `${fmtDate(v.sent_at)}<br><span class="small">${esc(v.sent_by || '')}</span>` : '-'}</td>
-          <td><button class="icon-btn icon-send" title="Send mitigation" data-send-severity="${sev}" ${v.pending ? '' : 'disabled'}>&#9992;</button></td>
-        `;
+          <td><button class="icon-btn icon-send" title="Send mitigation" data-send-severity="${sev}" ${v.pending ? '' : 'disabled'}>✈</button></td>`;
         el.appendChild(tr);
       });
     };
@@ -2018,103 +1927,53 @@
       const rows = await apiFetch(`${MITIGATIONS_API}/send-history`);
       const el = document.getElementById('mitigationHistoryRows');
       el.innerHTML = '';
-      if (!rows.length) {
-        el.innerHTML = '<tr><td colspan="5" class="small">No mitigation versions sent yet.</td></tr>';
-        return;
-      }
+      if (!rows.length) { el.innerHTML = '<tr><td colspan="5" class="small" style="padding:16px;">No mitigation versions sent yet.</td></tr>'; return; }
       rows.forEach((r) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.id}</td>
-          <td><span class="chip ${r.severity}">${esc(r.severity)}</span></td>
-          <td>v${r.sent_version}</td>
-          <td>${esc(r.sent_by)}</td>
-          <td>${fmtDate(r.sent_at)}</td>
-        `;
+        tr.innerHTML = `<td>${r.id}</td><td><span class="chip ${r.severity}">${esc(r.severity)}</span></td><td>v${r.sent_version}</td><td>${esc(r.sent_by)}</td><td>${fmtDate(r.sent_at)}</td>`;
         el.appendChild(tr);
       });
     };
 
     document.getElementById('mitigationFilterSeverity').addEventListener('change', loadMitigations);
-
     document.querySelectorAll('[data-m-format]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const cmd = btn.getAttribute('data-m-format');
-        mitigationFields.instructionEditor.focus();
-        document.execCommand(cmd, false);
-      });
+      btn.addEventListener('click', () => { const cmd = btn.getAttribute('data-m-format'); mitigationFields.instructionEditor.focus(); document.execCommand(cmd, false); });
     });
 
-    document.getElementById('mitigationInsertImageBtn').addEventListener('click', () => {
-      mitigationFields.imageInput.value = '';
-      mitigationFields.imageInput.click();
-    });
-
+    document.getElementById('mitigationInsertImageBtn').addEventListener('click', () => { mitigationFields.imageInput.value = ''; mitigationFields.imageInput.click(); });
     mitigationFields.imageInput.addEventListener('change', async (event) => {
       const file = event.target.files?.[0];
       if (!file) return;
       try {
-        const payload = new FormData();
-        payload.append('file', file);
+        const payload = new FormData(); payload.append('file', file);
         const uploaded = await apiFetch(MITIGATION_IMAGE_UPLOAD_API, { method: 'POST', body: payload });
         mitigationFields.instructionEditor.focus();
         const safeSrc = String(uploaded.url || '').replaceAll('"', '&quot;');
-        document.execCommand(
-          'insertHTML',
-          false,
-          `<img src="${safeSrc}" style="display:block; width:320px; max-width:100%; margin:8px auto; object-fit:contain; object-position:50% 50%;" data-align="center" />`
-        );
+        document.execCommand('insertHTML', false, `<img src="${safeSrc}" style="display:block; width:320px; max-width:100%; margin:8px auto; object-fit:contain; object-position:50% 50%;" data-align="center" />`);
         const images = mitigationFields.instructionEditor.querySelectorAll('img');
         const latest = images.length ? images[images.length - 1] : null;
-        if (latest) {
-          setActiveEditorImage(latest);
-        }
-      } catch (err) {
-        setStatus(err.message || 'Failed to upload instruction image.', 'err');
-      }
+        if (latest) setActiveEditorImage(latest);
+      } catch (err) { setStatus(err.message || 'Failed to upload instruction image.', 'err'); }
     });
 
     mitigationFields.instructionEditor.addEventListener('click', (event) => {
       const target = event.target;
-      if (target && target.tagName === 'IMG') {
-        setActiveEditorImage(target);
-        return;
-      }
+      if (target && target.tagName === 'IMG') { setActiveEditorImage(target); return; }
       clearActiveEditorImage();
     });
 
-    mitigationFields.imgAlignLeftBtn.addEventListener('click', () => {
-      if (!activeEditorImage) return;
-      setImageAlignment(activeEditorImage, 'left');
-    });
+    mitigationFields.imgAlignLeftBtn.addEventListener('click', () => { if (!activeEditorImage) return; setImageAlignment(activeEditorImage, 'left'); });
+    mitigationFields.imgAlignCenterBtn.addEventListener('click', () => { if (!activeEditorImage) return; setImageAlignment(activeEditorImage, 'center'); });
+    mitigationFields.imgAlignRightBtn.addEventListener('click', () => { if (!activeEditorImage) return; setImageAlignment(activeEditorImage, 'right'); });
 
-    mitigationFields.imgAlignCenterBtn.addEventListener('click', () => {
-      if (!activeEditorImage) return;
-      setImageAlignment(activeEditorImage, 'center');
-    });
-
-    mitigationFields.imgAlignRightBtn.addEventListener('click', () => {
-      if (!activeEditorImage) return;
-      setImageAlignment(activeEditorImage, 'right');
-    });
-
-    [
-      mitigationFields.imgWidthRange,
-      mitigationFields.imgCropToggle,
-      mitigationFields.imgCropHeightRange,
-      mitigationFields.imgPosXRange,
-      mitigationFields.imgPosYRange,
-    ].forEach((el) => {
+    [mitigationFields.imgWidthRange, mitigationFields.imgCropToggle, mitigationFields.imgCropHeightRange, mitigationFields.imgPosXRange, mitigationFields.imgPosYRange].forEach((el) => {
       el.addEventListener('input', applyImageToolsToActive);
       el.addEventListener('change', applyImageToolsToActive);
     });
 
     document.getElementById('mitigationRows').addEventListener('click', async (e) => {
       const editId = e.target.getAttribute('data-m-edit');
-      if (editId) {
-        const m = await apiFetch(`${MITIGATIONS_API}/${editId}`);
-        openMitigationEditor(m);
-      }
+      if (editId) { const m = await apiFetch(`${MITIGATIONS_API}/${editId}`); openMitigationEditor(m); }
     });
 
     document.getElementById('mitigationVersionRows').addEventListener('click', async (e) => {
@@ -2128,52 +1987,24 @@
       const action = e.submitter?.dataset.action || 'save';
       const id = mitigationFields.id.value;
       const instruction = mInstructionHtml();
-      const payload = {
-        title: mitigationFields.title.value.trim(),
-        instruction,
-      };
-
-      if (!id) {
-        setStatus('Choose an existing mitigation severity to edit.', 'err');
-        return;
-      }
-
-      if (!payload.title || !instruction.replace(/<[^>]+>/g, '').trim()) {
-        setStatus('Title and instruction are required before saving mitigation.', 'err');
-        return;
-      }
-
-      await apiFetch(`${MITIGATIONS_API}/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(payload),
-      });
-
-      setStatus('Mitigation updated.');
-      closeModal('mitigationModal');
-      resetMitigationForm();
-      await loadMitigations();
-      await loadMitigationVersions();
-
-      if (action === 'save-send') {
-        await sendMitigationSeverity(mitigationFields.severity.value);
-      }
+      const payload = { title: mitigationFields.title.value.trim(), instruction };
+      if (!id) { setStatus('Choose an existing mitigation severity to edit.', 'err'); return; }
+      if (!payload.title || !instruction.replace(/<[^>]+>/g, '').trim()) { setStatus('Title and instruction are required before saving.', 'err'); return; }
+      await apiFetch(`${MITIGATIONS_API}/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+      setStatus('Mitigation updated.'); closeModal('mitigationModal'); resetMitigationForm();
+      await loadMitigations(); await loadMitigationVersions();
+      if (action === 'save-send') await sendMitigationSeverity(mitigationFields.severity.value);
     });
 
     const libraryFields = {
-      id: document.getElementById('libraryId'),
-      title: document.getElementById('libraryTitle'),
-      bodyEditor: document.getElementById('libraryBodyEditor'),
-      image: document.getElementById('libraryImage'),
-      imageUploadBtn: document.getElementById('libraryImageUploadBtn'),
-      imageUploadInput: document.getElementById('libraryImageUploadInput'),
-      imagePreview: document.getElementById('libraryImagePreview'),
-      actorRole: document.getElementById('libraryActorRole'),
+      id: document.getElementById('libraryId'), title: document.getElementById('libraryTitle'),
+      bodyEditor: document.getElementById('libraryBodyEditor'), image: document.getElementById('libraryImage'),
+      imageUploadBtn: document.getElementById('libraryImageUploadBtn'), imageUploadInput: document.getElementById('libraryImageUploadInput'),
+      imagePreview: document.getElementById('libraryImagePreview'), actorRole: document.getElementById('libraryActorRole'),
     };
 
     const lBodyHtml = () => libraryFields.bodyEditor.innerHTML.trim();
-    const setLBodyHtml = (htmlValue) => {
-      libraryFields.bodyEditor.innerHTML = htmlValue || '<p></p>';
-    };
+    const setLBodyHtml = (htmlValue) => { libraryFields.bodyEditor.innerHTML = htmlValue || '<p></p>'; };
 
     const libraryBodyPlainText = (htmlValue) => {
       const wrap = document.createElement('div');
@@ -2182,11 +2013,8 @@
     };
 
     const resetLibraryForm = () => {
-      libraryFields.id.value = '';
-      libraryFields.title.value = '';
-      setLBodyHtml('');
-      libraryFields.image.value = '';
-      libraryFields.imagePreview.removeAttribute('src');
+      libraryFields.id.value = ''; libraryFields.title.value = ''; setLBodyHtml('');
+      libraryFields.image.value = ''; libraryFields.imagePreview.removeAttribute('src');
       libraryFields.imagePreview.style.display = 'none';
       libraryFields.actorRole.value = state.user?.role || 'Superadmin';
       document.getElementById('libraryFormTitle').textContent = 'Create Library Entry';
@@ -2198,40 +2026,30 @@
         if (!term) return true;
         return `${l.title} ${libraryBodyPlainText(l.body)}`.toLowerCase().includes(term);
       });
-
       const el = document.getElementById('libraryRows');
       el.innerHTML = '';
       rows.forEach((entry) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${entry.id}</td>
-          <td>${esc(entry.title)}</td>
+          <td style="color:var(--text-primary);font-weight:500;">${esc(entry.title)}</td>
           <td>${esc(libraryBodyPlainText(entry.body))}</td>
-          <td><a href="${esc(entry.image)}" target="_blank">View image</a></td>
+          <td><a href="${esc(entry.image)}" target="_blank" style="color:var(--accent-mid);font-size:12px;">View image ↗</a></td>
           <td>${fmtDate(entry.modified_at)}</td>
-          <td>
-            <div class="icon-actions">
-              <button class="icon-btn icon-edit" title="Edit library entry" data-l-edit="${entry.id}">&#9998;</button>
-              <button class="icon-btn icon-delete" title="Delete library entry" data-l-del="${entry.id}">&#128465;</button>
-            </div>
-          </td>
-        `;
+          <td><div class="icon-actions">
+            <button class="icon-btn icon-edit" title="Edit" data-l-edit="${entry.id}">✎</button>
+            <button class="icon-btn icon-delete" title="Delete" data-l-del="${entry.id}">🗑</button>
+          </div></td>`;
         el.appendChild(tr);
       });
     };
 
-    const loadLibrary = async () => {
-      state.library = await apiFetch(LIBRARY_API);
-      renderLibrary();
-    };
+    const loadLibrary = async () => { state.library = await apiFetch(LIBRARY_API); renderLibrary(); };
 
     const farmFields = {
-      id: document.getElementById('farmId'),
-      farmName: document.getElementById('farmName'),
-      farmAddress: document.getElementById('farmAddress'),
-      farmerUserId: document.getElementById('farmFarmerUserId'),
-      geotagId: document.getElementById('farmGeotagId'),
-      actorRole: document.getElementById('farmActorRole'),
+      id: document.getElementById('farmId'), farmName: document.getElementById('farmName'),
+      farmAddress: document.getElementById('farmAddress'), farmerUserId: document.getElementById('farmFarmerUserId'),
+      geotagId: document.getElementById('farmGeotagId'), actorRole: document.getElementById('farmActorRole'),
     };
 
     const getFarmerUsers = () => state.users.filter((u) => String(u.role || '').toLowerCase() === 'farmer');
@@ -2239,28 +2057,14 @@
     const refreshFarmFarmerOptions = () => {
       const farmers = getFarmerUsers();
       const currentValue = farmFields.farmerUserId.value;
-
-      if (!farmers.length) {
-        farmFields.farmerUserId.innerHTML = '<option value="">No Farmer users found</option>';
-        farmFields.farmerUserId.value = '';
-        return;
-      }
-
-      farmFields.farmerUserId.innerHTML = farmers
-        .map((u) => `<option value="${u.id}">${esc(u.name)} (${esc(u.contact_number || '-')})</option>`)
-        .join('');
-
-      if (currentValue && farmers.some((u) => String(u.id) === String(currentValue))) {
-        farmFields.farmerUserId.value = currentValue;
-      }
+      if (!farmers.length) { farmFields.farmerUserId.innerHTML = '<option value="">No Farmer users found</option>'; farmFields.farmerUserId.value = ''; return; }
+      farmFields.farmerUserId.innerHTML = farmers.map((u) => `<option value="${u.id}">${esc(u.name)} (${esc(u.contact_number || '-')})</option>`).join('');
+      if (currentValue && farmers.some((u) => String(u.id) === String(currentValue))) farmFields.farmerUserId.value = currentValue;
     };
 
     const resetFarmForm = () => {
-      farmFields.id.value = '';
-      farmFields.farmName.value = '';
-      farmFields.farmAddress.value = '';
-      farmFields.geotagId.value = '';
-      farmFields.actorRole.value = state.user?.role || 'Superadmin';
+      farmFields.id.value = ''; farmFields.farmName.value = ''; farmFields.farmAddress.value = '';
+      farmFields.geotagId.value = ''; farmFields.actorRole.value = state.user?.role || 'Superadmin';
       refreshFarmFarmerOptions();
       document.getElementById('farmFormTitle').textContent = 'Add New Farm';
     };
@@ -2269,208 +2073,127 @@
       const term = document.getElementById('farmSearch').value.trim().toLowerCase();
       const rows = state.farms.filter((f) => {
         if (!term) return true;
-        return [
-          f.farm_name,
-          f.farm_address,
-          f.geotag_id,
-          f.farmer_name,
-          f.farmer_contact_number,
-        ].some((v) => String(v || '').toLowerCase().includes(term));
+        return [f.farm_name, f.farm_address, f.geotag_id, f.farmer_name, f.farmer_contact_number].some((v) => String(v || '').toLowerCase().includes(term));
       });
-
       const el = document.getElementById('farmRows');
       el.innerHTML = '';
-      if (!rows.length) {
-        el.innerHTML = '<tr><td colspan="7" class="small">No farm entries yet.</td></tr>';
-        return;
-      }
-
+      if (!rows.length) { el.innerHTML = '<tr><td colspan="7" class="small" style="padding:16px;">No farm entries yet.</td></tr>'; return; }
       rows.forEach((farm) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${farm.id}</td>
-          <td>${esc(farm.farm_name)}</td>
+          <td style="color:var(--text-primary);font-weight:500;">${esc(farm.farm_name)}</td>
           <td>${esc(farm.farm_address)}</td>
           <td>${esc(farm.farmer_name || '-')}<br><span class="small">${esc(farm.farmer_contact_number || '-')}</span></td>
           <td>${esc(farm.geotag_id)}</td>
           <td>${fmtDate(farm.modified_at)}</td>
-          <td>
-            <div class="icon-actions">
-              <button class="icon-btn icon-edit" title="Edit farm" data-farm-edit="${farm.id}">&#9998;</button>
-              <button class="icon-btn icon-delete" title="Delete farm" data-farm-del="${farm.id}">&#128465;</button>
-            </div>
-          </td>
-        `;
+          <td><div class="icon-actions">
+            <button class="icon-btn icon-edit" title="Edit farm" data-farm-edit="${farm.id}">✎</button>
+            <button class="icon-btn icon-delete" title="Delete farm" data-farm-del="${farm.id}">🗑</button>
+          </div></td>`;
         el.appendChild(tr);
       });
     };
 
-    const loadFarms = async () => {
-      state.farms = await apiFetch(FARMS_API);
-      renderFarms();
-    };
+    const loadFarms = async () => { state.farms = await apiFetch(FARMS_API); renderFarms(); };
 
     const renderUploadedContent = () => {
       const term = document.getElementById('uploadedContentSearch').value.trim().toLowerCase();
       const rows = state.uploadedContent.filter((row) => {
         if (!term) return true;
-        return [
-          row.user_name,
-          row.user_contact,
-          row.severity,
-          row.remark,
-          row.history_id,
-        ].some((v) => String(v || '').toLowerCase().includes(term));
+        return [row.user_name, row.user_contact, row.severity, row.remark, row.history_id].some((v) => String(v || '').toLowerCase().includes(term));
       });
-
       const el = document.getElementById('uploadedContentRows');
       el.innerHTML = '';
-
-      if (!rows.length) {
-        el.innerHTML = '<tr><td colspan="7" class="small">No uploaded content yet.</td></tr>';
-        return;
-      }
-
+      if (!rows.length) { el.innerHTML = '<tr><td colspan="7" class="small" style="padding:16px;">No uploaded content yet.</td></tr>'; return; }
       rows.forEach((row) => {
         const tr = document.createElement('tr');
         const mitigationCount = Array.isArray(row.mitigations) ? row.mitigations.length : 0;
-        
-        // Convert image URI to full URL if it's a relative path
         let fullImageUrl = row.image_uri;
         if (row.image_uri && row.image_uri.startsWith('/api/uploads/')) {
-          // Relative path from server - construct full URL
           const protocol = window.location.protocol;
           const hostname = window.location.hostname;
           const port = window.location.port ? `:${window.location.port}` : '';
           fullImageUrl = `${protocol}//${hostname}${port}${row.image_uri}`;
         }
-        
         const imageThumb = row.image_uri ? `<img src="${esc(fullImageUrl)}" alt="Scan" class="image-thumbnail" data-image-src="${esc(fullImageUrl)}" />` : '<span class="small">No image</span>';
         tr.innerHTML = `
           <td>${imageThumb}</td>
-          <td>${esc(row.user_name || 'Unknown')}<br><span class="small">${esc(row.user_contact || '-')}</span></td>
+          <td style="color:var(--text-primary);font-weight:500;">${esc(row.user_name || 'Unknown')}<br><span class="small">${esc(row.user_contact || '-')}</span></td>
           <td>${esc(row.remark || '-')}</td>
           <td><span class="chip ${esc(row.severity)}">${esc(row.severity)}</span></td>
-          <td>${mitigationCount}</td>
+          <td style="text-align:center;">${mitigationCount}</td>
           <td>${fmtDate(row.scanned_at)}</td>
-          <td>${fmtDate(row.uploaded_at)}</td>
-        `;
+          <td>${fmtDate(row.uploaded_at)}</td>`;
         el.appendChild(tr);
       });
     };
 
-    const loadUploadedContent = async () => {
-      state.uploadedContent = await apiFetch(USER_UPLOADED_API);
-      renderUploadedContent();
-    };
+    const loadUploadedContent = async () => { state.uploadedContent = await apiFetch(USER_UPLOADED_API); renderUploadedContent(); };
 
     const sendLibraryVersionByEntry = async (entryId) => {
-      const sent = await apiFetch(`${LIBRARY_API}/send/${entryId}`, {
-        method: 'POST',
-        body: JSON.stringify({ actor_name: state.user?.name || 'Dashboard Admin', actor_role: libraryFields.actorRole.value || 'Superadmin' }),
-      });
+      const sent = await apiFetch(`${LIBRARY_API}/send/${entryId}`, { method: 'POST', body: JSON.stringify({ actor_name: state.user?.name || 'Dashboard Admin', actor_role: libraryFields.actorRole.value || 'Superadmin' }) });
       setStatus(sent.sent ? `Library entry #${entryId} v${sent.sent_version} sent.` : sent.message || 'Nothing new to send.');
-      await loadLibraryVersions();
-      await loadLibraryHistory();
+      await loadLibraryVersions(); await loadLibraryHistory();
     };
 
     const loadLibraryVersions = async () => {
       const v = await apiFetch(`${LIBRARY_API}/versions`);
       const entries = Array.isArray(v.entries) ? v.entries : [];
       const el = document.getElementById('libraryVersionRows');
-      if (!entries.length) {
-        el.innerHTML = '<tr><td colspan="5" class="small">No library entries yet.</td></tr>';
-        return;
-      }
-
+      if (!entries.length) { el.innerHTML = '<tr><td colspan="5" class="small" style="padding:16px;">No library entries yet.</td></tr>'; return; }
       el.innerHTML = entries.map((entry) => `
         <tr>
-          <td>${esc(entry.title)}</td>
-          <td>v${entry.draft_version}</td>
-          <td>v${entry.sent_version}</td>
+          <td style="color:var(--text-primary);font-weight:500;">${esc(entry.title)}</td>
+          <td>v${entry.draft_version}</td><td>v${entry.sent_version}</td>
           <td>${entry.sent_at ? `${fmtDate(entry.sent_at)}<br><span class="small">${esc(entry.sent_by || '')}</span>` : '-'}</td>
-          <td><button class="icon-btn icon-send" title="Send library" data-send-library="${entry.id}" ${entry.pending ? '' : 'disabled'}>&#9992;</button></td>
-        </tr>
-      `).join('');
+          <td><button class="icon-btn icon-send" title="Send library" data-send-library="${entry.id}" ${entry.pending ? '' : 'disabled'}>✈</button></td>
+        </tr>`).join('');
     };
 
     const loadLibraryHistory = async () => {
       const rows = await apiFetch(`${LIBRARY_API}/send-history`);
       const el = document.getElementById('libraryHistoryRows');
       el.innerHTML = '';
-      if (!rows.length) {
-        el.innerHTML = '<tr><td colspan="5" class="small">No library versions sent yet.</td></tr>';
-        return;
-      }
+      if (!rows.length) { el.innerHTML = '<tr><td colspan="5" class="small" style="padding:16px;">No library versions sent yet.</td></tr>'; return; }
       rows.forEach((r) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.id}</td>
-          <td>${esc(r.title || `Entry #${r.library_id}`)}</td>
-          <td>v${r.sent_version}</td>
-          <td>${esc(r.sent_by)}</td>
-          <td>${fmtDate(r.sent_at)}</td>
-        `;
+        tr.innerHTML = `<td>${r.id}</td><td style="color:var(--text-primary);">${esc(r.title || `Entry #${r.library_id}`)}</td><td>v${r.sent_version}</td><td>${esc(r.sent_by)}</td><td>${fmtDate(r.sent_at)}</td>`;
         el.appendChild(tr);
       });
     };
 
     document.querySelectorAll('[data-l-format]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const cmd = btn.getAttribute('data-l-format');
-        libraryFields.bodyEditor.focus();
-        document.execCommand(cmd, false);
-      });
+      btn.addEventListener('click', () => { const cmd = btn.getAttribute('data-l-format'); libraryFields.bodyEditor.focus(); document.execCommand(cmd, false); });
     });
 
-    libraryFields.imageUploadBtn.addEventListener('click', () => {
-      libraryFields.imageUploadInput.value = '';
-      libraryFields.imageUploadInput.click();
-    });
-
+    libraryFields.imageUploadBtn.addEventListener('click', () => { libraryFields.imageUploadInput.value = ''; libraryFields.imageUploadInput.click(); });
     libraryFields.imageUploadInput.addEventListener('change', async (event) => {
       const file = event.target.files?.[0];
       if (!file) return;
       try {
-        const payload = new FormData();
-        payload.append('file', file);
+        const payload = new FormData(); payload.append('file', file);
         const uploaded = await apiFetch(LIBRARY_IMAGE_UPLOAD_API, { method: 'POST', body: payload });
         libraryFields.image.value = uploaded.url;
         libraryFields.imagePreview.src = resolveApiImageUrl(uploaded.url);
         libraryFields.imagePreview.style.display = 'block';
-      } catch (err) {
-        setStatus(err.message || 'Failed to upload library image.', 'err');
-      }
+      } catch (err) { setStatus(err.message || 'Failed to upload library image.', 'err'); }
     });
 
     document.getElementById('librarySearch').addEventListener('input', renderLibrary);
     document.getElementById('uploadedContentSearch').addEventListener('input', renderUploadedContent);
 
-    // Image modal event listeners
     document.addEventListener('click', (e) => {
       if (e.target.classList.contains('image-thumbnail')) {
         const imageSrc = e.target.getAttribute('data-image-src');
-        if (imageSrc) {
-          document.getElementById('imageModalImg').src = imageSrc;
-          document.getElementById('imageModal').classList.add('open');
-        }
+        if (imageSrc) { document.getElementById('imageModalImg').src = imageSrc; document.getElementById('imageModal').classList.add('open'); }
       }
     });
 
-    document.getElementById('imageModalClose').addEventListener('click', () => {
-      document.getElementById('imageModal').classList.remove('open');
-    });
+    document.getElementById('imageModalClose').addEventListener('click', () => { document.getElementById('imageModal').classList.remove('open'); });
+    document.getElementById('imageModal').addEventListener('click', (e) => { if (e.target.id === 'imageModal') document.getElementById('imageModal').classList.remove('open'); });
 
-    document.getElementById('imageModal').addEventListener('click', (e) => {
-      if (e.target.id === 'imageModal') {
-        document.getElementById('imageModal').classList.remove('open');
-      }
-    });
-
-    document.getElementById('openLibraryModalBtn').addEventListener('click', () => {
-      resetLibraryForm();
-      openModal('libraryModal');
-    });
+    document.getElementById('openLibraryModalBtn').addEventListener('click', () => { resetLibraryForm(); openModal('libraryModal'); });
     document.getElementById('libraryResetBtn').addEventListener('click', resetLibraryForm);
 
     document.getElementById('libraryRows').addEventListener('click', async (e) => {
@@ -2478,26 +2201,17 @@
       const delId = e.target.getAttribute('data-l-del');
       if (editId) {
         const entry = await apiFetch(`${LIBRARY_API}/${editId}`);
-        libraryFields.id.value = entry.id;
-        libraryFields.title.value = entry.title;
-        setLBodyHtml(entry.body);
-        libraryFields.image.value = entry.image;
-        if (entry.image) {
-          libraryFields.imagePreview.src = resolveApiImageUrl(entry.image);
-          libraryFields.imagePreview.style.display = 'block';
-        } else {
-          libraryFields.imagePreview.removeAttribute('src');
-          libraryFields.imagePreview.style.display = 'none';
-        }
+        libraryFields.id.value = entry.id; libraryFields.title.value = entry.title;
+        setLBodyHtml(entry.body); libraryFields.image.value = entry.image;
+        if (entry.image) { libraryFields.imagePreview.src = resolveApiImageUrl(entry.image); libraryFields.imagePreview.style.display = 'block'; }
+        else { libraryFields.imagePreview.removeAttribute('src'); libraryFields.imagePreview.style.display = 'none'; }
         document.getElementById('libraryFormTitle').textContent = `Edit Library Entry #${entry.id}`;
         openModal('libraryModal');
       }
       if (delId) {
         if (!confirm(`Delete library entry #${delId}?`)) return;
         await apiFetch(`${LIBRARY_API}/${delId}?actor_role=${encodeURIComponent(libraryFields.actorRole.value || 'Superadmin')}`, { method: 'DELETE' });
-        setStatus('Library entry deleted.');
-        await loadLibrary();
-        await loadLibraryVersions();
+        setStatus('Library entry deleted.'); await loadLibrary(); await loadLibraryVersions();
       }
     });
 
@@ -2512,127 +2226,63 @@
       const action = e.submitter?.dataset.action || 'save';
       const id = libraryFields.id.value;
       const bodyHtml = lBodyHtml();
-      const payload = {
-        title: libraryFields.title.value.trim(),
-        body: bodyHtml,
-        image: libraryFields.image.value.trim(),
-        actor_role: libraryFields.actorRole.value,
-      };
-
-      if (!payload.title || !libraryBodyPlainText(bodyHtml) || !payload.image) {
-        setStatus('Title, body content, and an uploaded image are required before saving.', 'err');
-        return;
-      }
-
-      const savedEntry = await apiFetch(id ? `${LIBRARY_API}/${id}` : LIBRARY_API, {
-        method: id ? 'PUT' : 'POST',
-        body: JSON.stringify(payload),
-      });
-
+      const payload = { title: libraryFields.title.value.trim(), body: bodyHtml, image: libraryFields.image.value.trim(), actor_role: libraryFields.actorRole.value };
+      if (!payload.title || !libraryBodyPlainText(bodyHtml) || !payload.image) { setStatus('Title, body content, and an uploaded image are required.', 'err'); return; }
+      const savedEntry = await apiFetch(id ? `${LIBRARY_API}/${id}` : LIBRARY_API, { method: id ? 'PUT' : 'POST', body: JSON.stringify(payload) });
       setStatus(id ? 'Library entry updated.' : 'Library entry created.');
-      closeModal('libraryModal');
-      resetLibraryForm();
-      await loadLibrary();
-      await loadLibraryVersions();
-
-      if (action === 'save-send') {
-        const targetId = id || savedEntry?.id;
-        if (targetId) {
-          await sendLibraryVersionByEntry(targetId);
-        }
-      }
+      closeModal('libraryModal'); resetLibraryForm(); await loadLibrary(); await loadLibraryVersions();
+      if (action === 'save-send') { const targetId = id || savedEntry?.id; if (targetId) await sendLibraryVersionByEntry(targetId); }
     });
 
     document.getElementById('farmSearch').addEventListener('input', renderFarms);
-    document.getElementById('openFarmModalBtn').addEventListener('click', () => {
-      resetFarmForm();
-      openModal('farmModal');
-    });
+    document.getElementById('openFarmModalBtn').addEventListener('click', () => { resetFarmForm(); openModal('farmModal'); });
     document.getElementById('farmResetBtn').addEventListener('click', resetFarmForm);
 
     document.getElementById('farmRows').addEventListener('click', async (e) => {
       const editId = e.target.getAttribute('data-farm-edit');
       const delId = e.target.getAttribute('data-farm-del');
-
       if (editId) {
         const farm = await apiFetch(`${FARMS_API}/${editId}`);
-        farmFields.id.value = farm.id;
-        farmFields.farmName.value = farm.farm_name;
-        farmFields.farmAddress.value = farm.farm_address;
-        farmFields.geotagId.value = farm.geotag_id;
-        refreshFarmFarmerOptions();
-        farmFields.farmerUserId.value = String(farm.farmer_user_id || '');
+        farmFields.id.value = farm.id; farmFields.farmName.value = farm.farm_name;
+        farmFields.farmAddress.value = farm.farm_address; farmFields.geotagId.value = farm.geotag_id;
+        refreshFarmFarmerOptions(); farmFields.farmerUserId.value = String(farm.farmer_user_id || '');
         document.getElementById('farmFormTitle').textContent = `Edit Farm #${farm.id}`;
         openModal('farmModal');
       }
-
       if (delId) {
         if (!confirm(`Delete farm entry #${delId}?`)) return;
-        await apiFetch(`${FARMS_API}/${delId}?actor_role=${encodeURIComponent(farmFields.actorRole.value || 'Superadmin')}`, {
-          method: 'DELETE',
-        });
-        setStatus('Farm entry deleted.');
-        await loadFarms();
+        await apiFetch(`${FARMS_API}/${delId}?actor_role=${encodeURIComponent(farmFields.actorRole.value || 'Superadmin')}`, { method: 'DELETE' });
+        setStatus('Farm entry deleted.'); await loadFarms();
       }
     });
 
     document.getElementById('farmForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const id = farmFields.id.value;
-      const payload = {
-        farm_name: farmFields.farmName.value.trim(),
-        farm_address: farmFields.farmAddress.value.trim(),
-        farmer_user_id: Number(farmFields.farmerUserId.value),
-        geotag_id: farmFields.geotagId.value.trim(),
-        actor_role: farmFields.actorRole.value,
-      };
-
-      if (!payload.farm_name || !payload.farm_address || !payload.farmer_user_id || !payload.geotag_id) {
-        setStatus('Farm name, address, farmer, and geotag ID are required.', 'err');
-        return;
-      }
-
-      await apiFetch(id ? `${FARMS_API}/${id}` : FARMS_API, {
-        method: id ? 'PUT' : 'POST',
-        body: JSON.stringify(payload),
-      });
-
+      const payload = { farm_name: farmFields.farmName.value.trim(), farm_address: farmFields.farmAddress.value.trim(), farmer_user_id: Number(farmFields.farmerUserId.value), geotag_id: farmFields.geotagId.value.trim(), actor_role: farmFields.actorRole.value };
+      if (!payload.farm_name || !payload.farm_address || !payload.farmer_user_id || !payload.geotag_id) { setStatus('Farm name, address, farmer, and geotag ID are required.', 'err'); return; }
+      await apiFetch(id ? `${FARMS_API}/${id}` : FARMS_API, { method: id ? 'PUT' : 'POST', body: JSON.stringify(payload) });
       setStatus(id ? 'Farm entry updated.' : 'Farm entry created.');
-      closeModal('farmModal');
-      resetFarmForm();
-      await loadFarms();
+      closeModal('farmModal'); resetFarmForm(); await loadFarms();
     });
 
-    const showArchive = (title, html) => {
-      document.getElementById('archiveTitle').textContent = title;
-      document.getElementById('archiveContent').innerHTML = html;
-      openModal('archiveModal');
-    };
+    const showArchive = (title, html) => { document.getElementById('archiveTitle').textContent = title; document.getElementById('archiveContent').innerHTML = html; openModal('archiveModal'); };
 
     document.getElementById('viewMitigationArchiveBtn').addEventListener('click', async () => {
       const severity = document.getElementById('mitigationFilterSeverity').value;
-      if (severity === 'All') {
-        setStatus('Select one severity first to view previous versions.', 'err');
-        return;
-      }
-
+      if (severity === 'All') { setStatus('Select one severity first to view previous versions.', 'err'); return; }
       const rows = await apiFetch(`${MITIGATIONS_API}/archive/${severity}`);
-      if (!rows.length) {
-        showArchive(`Previous Versions: ${severity}`, '<p class="small">No previous sent versions yet.</p>');
-        return;
-      }
-
+      if (!rows.length) { showArchive(`Previous Versions: ${severity}`, '<p class="small">No previous sent versions yet.</p>'); return; }
       const html = rows.map((v) => `
-        <div class="card" style="margin-bottom:10px; box-shadow:none;">
-          <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
-            <div><strong>Version v${v.sent_version}</strong> <span class="small">sent at ${fmtDate(v.sent_at)} by ${esc(v.sent_by || '-')}</span></div>
-            <button type="button" class="btn-muted" data-restore-severity="${esc(v.severity)}" data-restore-version="${v.sent_version}">Restore this version</button>
+        <div style="background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;">
+            <div style="color:var(--text-primary);font-weight:600;">Version v${v.sent_version} <span class="small">· sent ${fmtDate(v.sent_at)} by ${esc(v.sent_by || '-')}</span></div>
+            <button type="button" class="btn-muted" data-restore-severity="${esc(v.severity)}" data-restore-version="${v.sent_version}" style="font-size:12px;">↩ Restore</button>
           </div>
-          <ul>
-            ${v.items.map((i) => `<li><strong>${esc(i.title)}</strong><div style="margin-top:4px;">${i.instruction || i.description || ''}</div></li>`).join('')}
+          <ul style="color:var(--text-soft);font-size:13px;padding-left:16px;">
+            ${v.items.map((i) => `<li><strong style="color:var(--text-primary);">${esc(i.title)}</strong><div style="margin-top:3px;">${i.instruction || i.description || ''}</div></li>`).join('')}
           </ul>
-        </div>
-      `).join('');
+        </div>`).join('');
       showArchive(`Previous Versions: ${severity}`, html);
     });
 
@@ -2641,70 +2291,38 @@
       const sentVersion = e.target.getAttribute('data-restore-version');
       if (!severity || !sentVersion) return;
       if (!confirm(`Restore ${severity} to sent version v${sentVersion}?`)) return;
-
-      await apiFetch(`${MITIGATIONS_API}/restore/${encodeURIComponent(severity)}/${encodeURIComponent(sentVersion)}`, {
-        method: 'POST',
-      });
+      await apiFetch(`${MITIGATIONS_API}/restore/${encodeURIComponent(severity)}/${encodeURIComponent(sentVersion)}`, { method: 'POST' });
       setStatus(`Restored ${severity} mitigation draft to version v${sentVersion}.`);
-      closeModal('archiveModal');
-      await loadMitigations();
-      await loadMitigationVersions();
-      await loadMitigationHistory();
+      closeModal('archiveModal'); await loadMitigations(); await loadMitigationVersions(); await loadMitigationHistory();
     });
 
     document.getElementById('viewLibraryArchiveBtn').addEventListener('click', async () => {
       const rows = await apiFetch(`${LIBRARY_API}/archive`);
-      if (!rows.length) {
-        showArchive('Library Previous Versions', '<p class="small">No previous sent versions yet.</p>');
-        return;
-      }
-
+      if (!rows.length) { showArchive('Library Previous Versions', '<p class="small">No previous sent versions yet.</p>'); return; }
       const html = rows.map((v) => `
-        <div class="card" style="margin-bottom:10px; box-shadow:none;">
-          <div><strong>${esc(v.title || `Entry #${v.source_library_id}`)} • Version v${v.sent_version}</strong> <span class="small">sent at ${fmtDate(v.sent_at)} by ${esc(v.sent_by || '-')}</span></div>
-          <ul>
-            ${v.items.map((i) => `<li><strong>${esc(i.title)}</strong><br>${esc(i.body)}</li>`).join('')}
+        <div style="background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;">
+          <div style="color:var(--text-primary);font-weight:600;">${esc(v.title || `Entry #${v.source_library_id}`)} · v${v.sent_version} <span class="small">· ${fmtDate(v.sent_at)} by ${esc(v.sent_by || '-')}</span></div>
+          <ul style="color:var(--text-soft);font-size:13px;padding-left:16px;margin-top:8px;">
+            ${v.items.map((i) => `<li><strong style="color:var(--text-primary);">${esc(i.title)}</strong><br>${esc(i.body)}</li>`).join('')}
           </ul>
-        </div>
-      `).join('');
+        </div>`).join('');
       showArchive('Library Previous Versions', html);
     });
 
     const loadEverything = async () => {
       await loadLibrary();
-      await Promise.all([
-        loadUsers(),
-        loadModelOverview(),
-        loadFarms(),
-        loadMitigations(),
-        loadMitigationVersions(),
-        loadMitigationHistory(),
-        loadLibraryVersions(),
-        loadLibraryHistory(),
-        loadUploadedContent(),
-      ]);
+      await Promise.all([loadUsers(), loadModelOverview(), loadFarms(), loadMitigations(),
+        loadMitigationVersions(), loadMitigationHistory(), loadLibraryVersions(), loadLibraryHistory(), loadUploadedContent()]);
     };
 
     const bootstrap = async () => {
-      initTabs();
-      resetUserForm();
-      resetMitigationForm();
-      resetLibraryForm();
-      resetFarmForm();
-
+      initTabs(); resetUserForm(); resetMitigationForm(); resetLibraryForm(); resetFarmForm();
       const ok = await verifyStoredSession();
-      if (!ok) {
-        showLogin();
-        return;
-      }
-
-      showDashboard();
-      startModelOverviewAutoRefresh();
-      await loadEverything();
+      if (!ok) { showLogin(); return; }
+      showDashboard(); startModelOverviewAutoRefresh(); await loadEverything();
     };
 
     bootstrap();
   </script>
 </body>
 </html>
-
