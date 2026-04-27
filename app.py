@@ -2907,7 +2907,7 @@ def upload_user_scan_content(payload: UploadedScanContentBatch) -> dict:
 
 @app.post("/api/upload-scan", status_code=201)
 async def upload_scan_with_file(
-    file: UploadFile = File(...),
+    file: UploadFile | None = File(default=None),
     history_id: str | None = Form(default=None),
     user_id: int | None = Form(default=None),
     farm_id: int | None = Form(default=None),
@@ -2916,10 +2916,7 @@ async def upload_scan_with_file(
     remark: str | None = Form(default=None),
     scanned_at: str | None = Form(default=None),
 ) -> dict:
-    """Upload scan with image file. File will be stored server-side."""
-    if not file or not file.filename:
-        raise HTTPException(status_code=400, detail="No file provided")
-    
+    """Upload scan metadata without storing the scan image file."""
     if not severity or not severity.strip():
         raise HTTPException(status_code=400, detail="Severity is required")
     
@@ -2929,20 +2926,11 @@ async def upload_scan_with_file(
     if severity not in SEVERITIES:
         raise HTTPException(status_code=400, detail=f"Invalid severity: {severity}")
     
-    # Save file to uploads directory
     try:
-        # Generate filename: {timestamp}-{random}.{ext}
-        import os as os_module
-        file_ext = os_module.path.splitext(file.filename)[1] or ".jpg"
-        filename = f"{int(datetime.now().timestamp())*1000}-{secrets.token_hex(4)}{file_ext}"
-        filepath = UPLOADS_DIR / filename
-        
-        with open(filepath, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
-        
-        # Store the relative URL path
-        image_uri = f"/api/uploads/{filename}"
+        if file is not None:
+            await file.read()
+
+        image_uri = ""
         
         # Insert into database
         conn = get_db()
@@ -3008,7 +2996,7 @@ async def upload_scan_with_file(
         conn.commit()
         conn.close()
         
-        return {"uploaded": True, "image_uri": image_uri, "filename": filename}
+        return {"uploaded": True, "image_uri": image_uri}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"File upload failed: {str(e)}")
