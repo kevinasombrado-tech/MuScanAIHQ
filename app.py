@@ -51,6 +51,11 @@ DB_NAME = _env("DB_NAME", "MYSQL_DATABASE", default="muscan_admin")
 DB_USER = _env("DB_USER", "MYSQL_USER", default="muscan_app")
 DB_PASSWORD = _env("DB_PASSWORD", "MYSQL_PASSWORD", default="")
 DB_SSL = _env("DB_SSL", "MYSQL_SSL", default="false").strip().lower() in {"1", "true", "yes", "on"}
+MODEL_OVERVIEW_PULL_URL = _env("MODEL_OVERVIEW_PULL_URL", default="").strip()
+MODEL_OVERVIEW_PULL_TOKEN = _env("MODEL_OVERVIEW_PULL_TOKEN", default="").strip()
+MODEL_OVERVIEW_REFRESH_INTERVAL_SECONDS = int(
+    _env("MODEL_OVERVIEW_REFRESH_INTERVAL_SECONDS", default="3600")
+)
 
 
 def _is_render_runtime() -> bool:
@@ -233,6 +238,25 @@ class UploadedScanContentItem(BaseModel):
 
 class UploadedScanContentBatch(BaseModel):
     uploads: list[UploadedScanContentItem] = Field(min_length=1)
+
+
+class ModelOverviewPayload(BaseModel):
+    user_id: int = Field(gt=0)
+    overall_accuracy: float = Field(ge=0, le=100)
+    total_scans: int = Field(ge=0)
+    average_confidence: float | None = Field(default=None, ge=0, le=100)
+    last7_accuracy: float | None = Field(default=None, ge=0, le=100)
+    last30_accuracy: float | None = Field(default=None, ge=0, le=100)
+    trend: list[dict] = Field(default_factory=list)
+    severity_distribution: dict[str, int] = Field(default_factory=dict)
+    confidence_distribution: dict[str, int] = Field(default_factory=dict)
+    top_issues: list[dict] = Field(default_factory=list)
+    source_updated_at: str | None = None
+
+
+class ModelOverviewReport(BaseModel):
+    items: list[ModelOverviewPayload] = Field(min_length=1)
+    source: str = Field(default="app", min_length=1, max_length=40)
 
 
 app = FastAPI(title="MuScanAI Admin API", version="2.0.0")
@@ -624,6 +648,45 @@ def init_db() -> None:
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
             FOREIGN KEY (farm_id) REFERENCES farm_entries(id) ON DELETE SET NULL
         )
+        """
+    )
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS model_overview_records (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            user_id BIGINT NOT NULL UNIQUE,
+            overall_accuracy DECIMAL(5,2) NOT NULL DEFAULT 0,
+            total_scans INT NOT NULL DEFAULT 0,
+            average_confidence DECIMAL(5,2) NULL,
+            last7_accuracy DECIMAL(5,2) NULL,
+            last30_accuracy DECIMAL(5,2) NULL,
+            trend_json LONGTEXT NULL,
+            severity_distribution_json LONGTEXT NULL,
+            confidence_distribution_json LONGTEXT NULL,
+            top_issues_json LONGTEXT NULL,
+            source VARCHAR(40) NOT NULL DEFAULT 'app',
+            source_updated_at DATETIME NULL,
+            fetched_at DATETIME NOT NULL DEFAULT NOW(),
+            updated_at DATETIME NOT NULL DEFAULT NOW() ON UPDATE NOW(),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        """
+    )
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS model_overview_refresh_state (
+            id INT PRIMARY KEY,
+            last_attempt_at DATETIME NULL,
+            last_success_at DATETIME NULL,
+            last_status VARCHAR(20) NULL,
+            last_message TEXT NULL
+        )
+        """
+    )
+    cur.execute(
+        """
+        INSERT IGNORE INTO model_overview_refresh_state (id, last_status, last_message)
+        VALUES (1, 'idle', 'No refresh attempt yet')
         """
     )
 
@@ -1290,6 +1353,261 @@ def session_user(conn, token: str):
     return cur.fetchone()
 
 
+def parse_iso_datetime(raw: str | None) -> datetime | None:
+    value = (raw or "").strip()
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def json_dump(value) -> str:
+    return json.dumps(value if value is not None else {}, ensure_ascii=False)
+
+
+def json_load(value: str | None, fallback):
+    if not value:
+        return fallback
+    try:
+        parsed = json.loads(value)
+        if parsed is None:
+            return fallback
+        return parsed
+    except (json.JSONDecodeError, TypeError):
+        return fallback
+
+
+def upsert_model_overview(conn, item: ModelOverviewPayload, source: str = "app") -> None:
+    source_updated_at = parse_iso_datetime(item.source_updated_at)
+    conn.cursor().execute(
+        """
+        INSERT INTO model_overview_records (
+            user_id,
+            overall_accuracy,
+            total_scans,
+            average_confidence,
+            last7_accuracy,
+            last30_accuracy,
+            trend_json,
+            severity_distribution_json,
+            confidence_distribution_json,
+            top_issues_json,
+            source,
+            source_updated_at,
+            fetched_at
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+        ON DUPLICATE KEY UPDATE
+            overall_accuracy = VALUES(overall_accuracy),
+            total_scans = VALUES(total_scans),
+            average_confidence = VALUES(average_confidence),
+            last7_accuracy = VALUES(last7_accuracy),
+            last30_accuracy = VALUES(last30_accuracy),
+            trend_json = VALUES(trend_json),
+            severity_distribution_json = VALUES(severity_distribution_json),
+            confidence_distribution_json = VALUES(confidence_distribution_json),
+            top_issues_json = VALUES(top_issues_json),
+            source = VALUES(source),
+            source_updated_at = VALUES(source_updated_at),
+            fetched_at = NOW()
+        """,
+        (
+            int(item.user_id),
+            float(item.overall_accuracy),
+            int(item.total_scans),
+            float(item.average_confidence) if item.average_confidence is not None else None,
+            float(item.last7_accuracy) if item.last7_accuracy is not None else None,
+            float(item.last30_accuracy) if item.last30_accuracy is not None else None,
+            json_dump(item.trend),
+            json_dump(item.severity_distribution),
+            json_dump(item.confidence_distribution),
+            json_dump(item.top_issues),
+            source[:40],
+            source_updated_at,
+        ),
+    )
+
+
+def model_overview_row_to_dict(row: dict) -> dict:
+    return {
+        "user_id": int(row["user_id"]),
+        "user_name": row.get("user_name") or "Unknown",
+        "user_contact_number": row.get("user_contact_number") or "",
+        "user_role": row.get("user_role") or "",
+        "overall_accuracy": float(row.get("overall_accuracy") or 0),
+        "total_scans": int(row.get("total_scans") or 0),
+        "average_confidence": (
+            float(row["average_confidence"]) if row.get("average_confidence") is not None else None
+        ),
+        "last7_accuracy": float(row.get("last7_accuracy") or 0),
+        "last30_accuracy": float(row.get("last30_accuracy") or 0),
+        "trend": json_load(row.get("trend_json"), []),
+        "severity_distribution": json_load(row.get("severity_distribution_json"), {}),
+        "confidence_distribution": json_load(row.get("confidence_distribution_json"), {}),
+        "top_issues": json_load(row.get("top_issues_json"), []),
+        "source": row.get("source") or "app",
+        "source_updated_at": row.get("source_updated_at"),
+        "fetched_at": row.get("fetched_at"),
+        "updated_at": row.get("updated_at"),
+    }
+
+
+def list_model_overview_rows(conn) -> list[dict]:
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT
+            u.id AS user_id,
+            u.name AS user_name,
+            u.contact_number AS user_contact_number,
+            u.role AS user_role,
+            m.overall_accuracy,
+            m.total_scans,
+            m.average_confidence,
+            m.last7_accuracy,
+            m.last30_accuracy,
+            m.trend_json,
+            m.severity_distribution_json,
+            m.confidence_distribution_json,
+            m.top_issues_json,
+            m.source,
+            m.source_updated_at,
+            m.fetched_at,
+            m.updated_at
+        FROM users u
+        LEFT JOIN model_overview_records m ON m.user_id = u.id
+        ORDER BY u.id DESC
+        """
+    )
+    return [model_overview_row_to_dict(row) for row in cur.fetchall()]
+
+
+def read_model_overview_refresh_state(conn) -> dict:
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT id, last_attempt_at, last_success_at, last_status, last_message
+        FROM model_overview_refresh_state
+        WHERE id = 1
+        """
+    )
+    row = cur.fetchone() or {}
+    return {
+        "last_attempt_at": row.get("last_attempt_at"),
+        "last_success_at": row.get("last_success_at"),
+        "last_status": row.get("last_status") or "idle",
+        "last_message": row.get("last_message") or "No refresh attempt yet",
+    }
+
+
+def mark_model_overview_refresh(
+    conn,
+    *,
+    status: str,
+    message: str,
+    success: bool,
+) -> None:
+    conn.cursor().execute(
+        """
+        UPDATE model_overview_refresh_state
+        SET
+            last_attempt_at = NOW(),
+            last_success_at = CASE WHEN %s THEN NOW() ELSE last_success_at END,
+            last_status = %s,
+            last_message = %s
+        WHERE id = 1
+        """,
+        (1 if success else 0, status[:20], message[:2000]),
+    )
+
+
+def maybe_refresh_model_overview(conn, force: bool = False) -> dict:
+    state_row = read_model_overview_refresh_state(conn)
+    now_epoch = int(time.time())
+    last_attempt = state_row.get("last_attempt_at")
+
+    if last_attempt and not force:
+        try:
+            last_epoch = int(last_attempt.timestamp())
+            if now_epoch - last_epoch < MODEL_OVERVIEW_REFRESH_INTERVAL_SECONDS:
+                return {
+                    "attempted": False,
+                    "refreshed": False,
+                    "status": state_row.get("last_status") or "idle",
+                    "message": "Refresh skipped: still inside hourly interval.",
+                    "last_attempt_at": state_row.get("last_attempt_at"),
+                    "last_success_at": state_row.get("last_success_at"),
+                }
+        except Exception:
+            pass
+
+    if not MODEL_OVERVIEW_PULL_URL:
+        return {
+            "attempted": False,
+            "refreshed": False,
+            "status": state_row.get("last_status") or "idle",
+            "message": "MODEL_OVERVIEW_PULL_URL is not configured. Returning last saved metrics.",
+            "last_attempt_at": state_row.get("last_attempt_at"),
+            "last_success_at": state_row.get("last_success_at"),
+        }
+
+    headers = {"Accept": "application/json"}
+    if MODEL_OVERVIEW_PULL_TOKEN:
+        headers["Authorization"] = f"Bearer {MODEL_OVERVIEW_PULL_TOKEN}"
+
+    try:
+        request = urllib.request.Request(MODEL_OVERVIEW_PULL_URL, headers=headers, method="GET")
+        with urllib.request.urlopen(request, timeout=20) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+
+        raw_items = payload.get("items") if isinstance(payload, dict) else None
+        if not isinstance(raw_items, list):
+            raise ValueError("Invalid pull response: expected { items: [] }")
+
+        updated_count = 0
+        for raw_item in raw_items:
+            parsed = ModelOverviewPayload(**raw_item)
+            upsert_model_overview(conn, parsed, source="app-pull")
+            updated_count += 1
+
+        mark_model_overview_refresh(
+            conn,
+            status="ok",
+            message=f"Refreshed {updated_count} user metrics from app source.",
+            success=True,
+        )
+        conn.commit()
+        refreshed_state = read_model_overview_refresh_state(conn)
+        return {
+            "attempted": True,
+            "refreshed": True,
+            "status": "ok",
+            "message": f"Refreshed {updated_count} user metrics.",
+            "last_attempt_at": refreshed_state.get("last_attempt_at"),
+            "last_success_at": refreshed_state.get("last_success_at"),
+        }
+    except Exception as exc:
+        conn.rollback()
+        mark_model_overview_refresh(
+            conn,
+            status="err",
+            message=f"Refresh failed: {exc}",
+            success=False,
+        )
+        conn.commit()
+        refreshed_state = read_model_overview_refresh_state(conn)
+        return {
+            "attempted": True,
+            "refreshed": False,
+            "status": "err",
+            "message": f"Refresh failed. Kept last saved metrics. ({exc})",
+            "last_attempt_at": refreshed_state.get("last_attempt_at"),
+            "last_success_at": refreshed_state.get("last_success_at"),
+        }
+
+
 def library_row_to_dict(row: sqlite3.Row) -> dict:
     return {
         "id": row["id"],
@@ -1946,6 +2264,100 @@ def delete_user(user_id: int) -> dict:
     conn.commit()
     conn.close()
     return {"deleted": True, "id": user_id}
+
+
+@app.get("/api/model-overview")
+def list_model_overview(force_refresh: bool = Query(default=False)) -> dict:
+    conn = get_db()
+    refresh_meta = maybe_refresh_model_overview(conn, force=bool(force_refresh))
+    items = list_model_overview_rows(conn)
+    conn.close()
+    return {
+        "items": items,
+        "refresh": refresh_meta,
+    }
+
+
+@app.get("/api/model-overview/{user_id}")
+def get_model_overview_user(user_id: int) -> dict:
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT
+            u.id AS user_id,
+            u.name AS user_name,
+            u.contact_number AS user_contact_number,
+            u.role AS user_role,
+            m.overall_accuracy,
+            m.total_scans,
+            m.average_confidence,
+            m.last7_accuracy,
+            m.last30_accuracy,
+            m.trend_json,
+            m.severity_distribution_json,
+            m.confidence_distribution_json,
+            m.top_issues_json,
+            m.source,
+            m.source_updated_at,
+            m.fetched_at,
+            m.updated_at
+        FROM users u
+        LEFT JOIN model_overview_records m ON m.user_id = u.id
+        WHERE u.id = %s
+        """,
+        (int(user_id),),
+    )
+    row = cur.fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(status_code=404, detail="User not found")
+    return model_overview_row_to_dict(row)
+
+
+@app.post("/api/model-overview/refresh")
+def refresh_model_overview() -> dict:
+    conn = get_db()
+    refresh_meta = maybe_refresh_model_overview(conn, force=True)
+    items = list_model_overview_rows(conn)
+    conn.close()
+    return {
+        "items": items,
+        "refresh": refresh_meta,
+    }
+
+
+@app.post("/api/model-overview/report", status_code=201)
+def report_model_overview(payload: ModelOverviewReport) -> dict:
+    conn = get_db()
+    cur = conn.cursor()
+
+    accepted = 0
+    skipped_user_ids: list[int] = []
+
+    for item in payload.items:
+        cur.execute("SELECT id FROM users WHERE id = %s", (int(item.user_id),))
+        exists = cur.fetchone()
+        if not exists:
+            skipped_user_ids.append(int(item.user_id))
+            continue
+        upsert_model_overview(conn, item, source=payload.source)
+        accepted += 1
+
+    mark_model_overview_refresh(
+        conn,
+        status="ok",
+        message=f"Stored {accepted} model overview rows from report.",
+        success=True,
+    )
+    conn.commit()
+    conn.close()
+
+    return {
+        "stored": accepted,
+        "skipped_user_ids": skipped_user_ids,
+        "message": "Model overview metrics saved.",
+    }
 
 
 @app.post("/api/auth/signup/request-otp")

@@ -577,6 +577,122 @@
       letter-spacing: 0.04em;
     }
 
+    .model-refresh-meta {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .model-score {
+      font-weight: 800;
+      color: var(--green-900);
+    }
+
+    .model-empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 12px;
+    }
+
+    .overview-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .overview-detail-tile {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #f7fbf6;
+      padding: 10px;
+    }
+
+    .overview-detail-tile .k {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .overview-detail-tile .v {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--green-900);
+    }
+
+    .overview-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      min-height: 140px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: #f7fbf6;
+      margin-bottom: 12px;
+    }
+
+    .overview-bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .overview-bar-track {
+      width: 100%;
+      height: 90px;
+      border-radius: 8px;
+      background: #e8f2e7;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+    }
+
+    .overview-bar-fill {
+      width: 100%;
+      background: var(--green-700);
+      min-height: 6px;
+    }
+
+    .overview-chip-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .overview-issue-row {
+      margin-bottom: 10px;
+    }
+
+    .overview-issue-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .overview-issue-track {
+      width: 100%;
+      height: 9px;
+      background: #e8f2e7;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .overview-issue-fill {
+      height: 100%;
+      background: var(--green-700);
+      min-width: 4px;
+    }
+
     .chip {
       display: inline-block;
       padding: 3px 10px;
@@ -668,6 +784,7 @@
       <div class="brand-sub">Agriculture Admin Dashboard</div>
       <div class="nav">
         <button class="tab-btn active" data-target="users-section">Users</button>
+        <button class="tab-btn" data-target="model-overview-section">Model Overview</button>
         <button class="tab-btn" data-target="mitigations-section">Mitigations</button>
         <button class="tab-btn" data-target="library-section">Library</button>
         <button class="tab-btn" data-target="farm-section">Farm</button>
@@ -716,6 +833,41 @@
                 </tr>
               </thead>
               <tbody id="userRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="model-overview-section" class="section">
+        <div class="card">
+          <div class="toolbar">
+            <h3>Model Overview</h3>
+            <div class="toolbar-row">
+              <div class="toolbar-left">
+                <input id="modelOverviewSearch" placeholder="Search user, role, contact" />
+              </div>
+              <div class="toolbar-actions">
+                <button id="refreshModelOverviewBtn" class="btn-outline toolbar-btn" type="button">Fetch from app now</button>
+              </div>
+            </div>
+            <div id="modelOverviewMeta" class="model-refresh-meta">Last saved metrics will be used if refresh fails.</div>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width:220px;">User</th>
+                  <th style="width:100px;">Role</th>
+                  <th style="width:110px;">Accuracy</th>
+                  <th style="width:100px;">Scans</th>
+                  <th style="width:120px;">Avg confidence</th>
+                  <th style="width:110px;">7 days</th>
+                  <th style="width:110px;">30 days</th>
+                  <th style="width:170px;">Last saved</th>
+                  <th style="width:90px;">Details</th>
+                </tr>
+              </thead>
+              <tbody id="modelOverviewRows"></tbody>
             </table>
           </div>
         </div>
@@ -1135,6 +1287,16 @@
     </div>
   </div>
 
+  <div id="modelOverviewModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="modelOverviewModalTitle">Model Overview Details</h3>
+        <button type="button" class="btn-muted" data-close-modal="modelOverviewModal">Close</button>
+      </div>
+      <div id="modelOverviewDetailBody" class="small"></div>
+    </div>
+  </div>
+
   <div id="imageModal" class="image-modal">
     <div class="image-modal-content">
       <button type="button" class="image-modal-close" id="imageModalClose">&times;</button>
@@ -1183,6 +1345,7 @@
     const LIBRARY_IMAGE_UPLOAD_API = '/api/library-image-upload';
     const FARMS_API = '/api/farms';
     const USER_UPLOADED_API = '/api/user-uploaded-content';
+    const MODEL_OVERVIEW_API = '/api/model-overview';
     const ADMIN_SESSION_KEY = 'muscan.admin.session';
 
     const state = {
@@ -1193,7 +1356,10 @@
       library: [],
       farms: [],
       uploadedContent: [],
+      modelOverview: [],
+      modelOverviewRefresh: null,
     };
+    let modelOverviewTimer = null;
 
     const loginGate = document.getElementById('loginGate');
     const dashboardLayout = document.getElementById('dashboardLayout');
@@ -1278,6 +1444,26 @@
       loginGate.style.display = 'grid';
     };
 
+    const startModelOverviewAutoRefresh = () => {
+      if (modelOverviewTimer) {
+        clearInterval(modelOverviewTimer);
+      }
+      modelOverviewTimer = setInterval(async () => {
+        if (!state.token) return;
+        try {
+          await loadModelOverview(true, true);
+        } catch (_) {
+          // Keep last saved values if refresh fails.
+        }
+      }, 60 * 60 * 1000);
+    };
+
+    const stopModelOverviewAutoRefresh = () => {
+      if (!modelOverviewTimer) return;
+      clearInterval(modelOverviewTimer);
+      modelOverviewTimer = null;
+    };
+
     const verifyStoredSession = async () => {
       const raw = localStorage.getItem(ADMIN_SESSION_KEY);
       if (!raw) return false;
@@ -1321,6 +1507,7 @@
         state.user = data.user;
         saveSession();
         showDashboard();
+        startModelOverviewAutoRefresh();
         setStatus('Welcome. Dashboard unlocked.');
         await loadEverything();
       } catch (err) {
@@ -1340,6 +1527,7 @@
         // Ignore network errors on logout.
       }
       clearSession();
+      stopModelOverviewAutoRefresh();
       showLogin();
       setStatus('');
     });
@@ -1418,6 +1606,156 @@
       renderUsers();
       refreshFarmFarmerOptions();
     };
+
+    const fmtPct = (value) => {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return '-';
+      return `${n.toFixed(1)}%`;
+    };
+
+    const getModelOverviewMetaText = () => {
+      const refresh = state.modelOverviewRefresh;
+      if (!refresh) return 'Last saved metrics will be used if refresh fails.';
+      const parts = [];
+      if (refresh.message) parts.push(String(refresh.message));
+      if (refresh.last_success_at) parts.push(`Last success: ${fmtDate(refresh.last_success_at)}`);
+      return parts.join(' | ') || 'Last saved metrics will be used if refresh fails.';
+    };
+
+    const renderModelOverview = () => {
+      const searchTerm = document.getElementById('modelOverviewSearch').value.trim().toLowerCase();
+      const rows = state.modelOverview.filter((row) => {
+        if (!searchTerm) return true;
+        return [row.user_name, row.user_contact_number, row.user_role]
+          .some((value) => String(value || '').toLowerCase().includes(searchTerm));
+      });
+
+      const el = document.getElementById('modelOverviewRows');
+      const metaEl = document.getElementById('modelOverviewMeta');
+      metaEl.textContent = getModelOverviewMetaText();
+      el.innerHTML = '';
+
+      if (!rows.length) {
+        el.innerHTML = '<tr><td colspan="9" class="model-empty">No model overview records yet.</td></tr>';
+        return;
+      }
+
+      rows.forEach((row) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${esc(row.user_name || 'Unknown')}</strong><br><span class="small">${esc(row.user_contact_number || '-')}</span></td>
+          <td><span class="chip ${esc(row.user_role || 'Farmer')}">${esc(row.user_role || '-')}</span></td>
+          <td><span class="model-score">${fmtPct(row.overall_accuracy)}</span></td>
+          <td>${Number(row.total_scans || 0)}</td>
+          <td>${row.average_confidence == null ? '-' : fmtPct(row.average_confidence)}</td>
+          <td>${fmtPct(row.last7_accuracy || 0)}</td>
+          <td>${fmtPct(row.last30_accuracy || 0)}</td>
+          <td>${fmtDate(row.updated_at || row.fetched_at || row.source_updated_at)}</td>
+          <td><button class="icon-btn icon-edit" title="View details" data-mo-view="${row.user_id}">&#128065;</button></td>
+        `;
+        el.appendChild(tr);
+      });
+    };
+
+    const openModelOverviewDetail = (userId) => {
+      const row = state.modelOverview.find((item) => String(item.user_id) === String(userId));
+      if (!row) return;
+
+      document.getElementById('modelOverviewModalTitle').textContent = `Model Overview: ${row.user_name || 'Unknown user'}`;
+
+      const trend = Array.isArray(row.trend) ? row.trend : [];
+      const trendMax = Math.max(1, ...trend.map((item) => Number(item.accuracy || 0)));
+      const severity = row.severity_distribution || {};
+      const confidence = row.confidence_distribution || {};
+      const topIssues = Array.isArray(row.top_issues) ? row.top_issues : [];
+
+      const trendHtml = trend.length
+        ? trend.map((item) => {
+          const value = Number(item.accuracy || 0);
+          const h = Math.max(6, Math.round((value / trendMax) * 100));
+          return `
+            <div class="overview-bar-col">
+              <div class="overview-bar-track">
+                <div class="overview-bar-fill" style="height:${h}%;"></div>
+              </div>
+              <div class="small">${fmtPct(value)}</div>
+            </div>
+          `;
+        }).join('')
+        : '<div class="small">No trend data available.</div>';
+
+      const severityHtml = ['Functional', 'Mild', 'Moderate', 'Severe']
+        .map((key) => `<span class="chip ${key}">${key}: ${Number(severity[key] || 0)}</span>`)
+        .join('');
+
+      const confidenceHtml = ['veryHigh', 'high', 'medium', 'low']
+        .map((key) => `<span class="chip">${esc(key)}: ${Number(confidence[key] || 0)}</span>`)
+        .join('');
+
+      const issuesHtml = topIssues.length
+        ? topIssues.map((issue) => {
+          const pct = Math.max(0, Number(issue.percentage || 0));
+          return `
+            <div class="overview-issue-row">
+              <div class="overview-issue-meta">
+                <span>${esc(issue.severity || 'Unknown')}</span>
+                <span>${pct.toFixed(1)}%</span>
+              </div>
+              <div class="overview-issue-track">
+                <div class="overview-issue-fill" style="width:${Math.max(2, pct)}%;"></div>
+              </div>
+            </div>
+          `;
+        }).join('')
+        : '<div class="small">No issue distribution yet.</div>';
+
+      document.getElementById('modelOverviewDetailBody').innerHTML = `
+        <div class="overview-detail-grid">
+          <div class="overview-detail-tile"><div class="k">Overall Accuracy</div><div class="v">${fmtPct(row.overall_accuracy)}</div></div>
+          <div class="overview-detail-tile"><div class="k">Total Scans</div><div class="v">${Number(row.total_scans || 0)}</div></div>
+          <div class="overview-detail-tile"><div class="k">Average Confidence</div><div class="v">${row.average_confidence == null ? '-' : fmtPct(row.average_confidence)}</div></div>
+          <div class="overview-detail-tile"><div class="k">Updated</div><div class="v" style="font-size:14px;">${esc(fmtDate(row.updated_at || row.fetched_at || row.source_updated_at))}</div></div>
+        </div>
+        <h4 style="margin:6px 0 8px;">Accuracy Trends</h4>
+        <div class="overview-bars">${trendHtml}</div>
+        <h4 style="margin:6px 0 8px;">Severity Distribution</h4>
+        <div class="overview-chip-row">${severityHtml}</div>
+        <h4 style="margin:6px 0 8px;">Model Confidence</h4>
+        <div class="overview-chip-row">${confidenceHtml}</div>
+        <h4 style="margin:6px 0 8px;">Top Detected Issues</h4>
+        <div>${issuesHtml}</div>
+      `;
+
+      openModal('modelOverviewModal');
+    };
+
+    const loadModelOverview = async (forceRefresh = false, silent = false) => {
+      const query = forceRefresh ? '?force_refresh=true' : '';
+      const data = await apiFetch(`${MODEL_OVERVIEW_API}${query}`);
+      state.modelOverview = Array.isArray(data.items) ? data.items : [];
+      state.modelOverviewRefresh = data.refresh || null;
+      renderModelOverview();
+
+      if (forceRefresh && !silent) {
+        const statusKind = data?.refresh?.status === 'err' ? 'err' : 'ok';
+        setStatus(data?.refresh?.message || 'Model overview fetch completed.', statusKind);
+      }
+    };
+
+    document.getElementById('modelOverviewSearch').addEventListener('input', renderModelOverview);
+    document.getElementById('refreshModelOverviewBtn').addEventListener('click', async () => {
+      try {
+        await loadModelOverview(true, false);
+      } catch (err) {
+        setStatus(err.message || 'Failed to refresh model overview. Showing last saved values.', 'err');
+      }
+    });
+
+    document.getElementById('modelOverviewRows').addEventListener('click', async (e) => {
+      const userId = e.target.getAttribute('data-mo-view');
+      if (!userId) return;
+      openModelOverviewDetail(userId);
+    });
 
     document.getElementById('usersSearch').addEventListener('input', renderUsers);
     document.getElementById('openUserModalBtn').addEventListener('click', () => {
@@ -2336,6 +2674,7 @@
       await loadLibrary();
       await Promise.all([
         loadUsers(),
+        loadModelOverview(),
         loadFarms(),
         loadMitigations(),
         loadMitigationVersions(),
@@ -2360,6 +2699,7 @@
       }
 
       showDashboard();
+      startModelOverviewAutoRefresh();
       await loadEverything();
     };
 
