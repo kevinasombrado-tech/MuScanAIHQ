@@ -1678,18 +1678,27 @@ def startup() -> None:
         try:
             print(f"Starting database initialization against {DB_HOST}:{DB_PORT}", file=sys.stderr)
             init_db()
+            print("Database initialization complete.", file=sys.stderr)
             return
-        except pymysql.err.OperationalError as exc:
+        except Exception as exc:
             last_error = exc
-            if exc.args and int(exc.args[0]) in {10048, 2003} and attempt < 3:
+            # Retry transient MySQL network errors
+            if isinstance(exc, pymysql.err.OperationalError) and exc.args and int(exc.args[0]) in {10048, 2003} and attempt < 3:
                 time.sleep(1.0 * attempt)
                 continue
-            raise
 
+            # Non-retryable or exhausted retries: log and continue startup without raising
+            print(f"Warning: database initialization failed on attempt {attempt}: {repr(exc)}", file=sys.stderr)
+            traceback.print_exception(type(exc), exc, exc.__traceback__, file=sys.stderr)
+            print("Continuing startup without database. Endpoints requiring DB will return errors until DB is available.", file=sys.stderr)
+            return
+
+    # Retries exhausted — log and continue without crashing the process
     if last_error is not None:
         print("Startup failed after retries:", repr(last_error), file=sys.stderr)
         traceback.print_exception(type(last_error), last_error, last_error.__traceback__, file=sys.stderr)
-        raise last_error
+        print("Continuing startup without database after retries.", file=sys.stderr)
+        return
 
 
 @app.get("/")
