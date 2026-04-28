@@ -296,7 +296,7 @@ def get_db():
         )
         return conn
     except pymysql.err.OperationalError as exc:
-        # Provide an actionable startup error when credentials are missing or invalid.
+        # Authentication errors are fatal to startup — surface clearly.
         if exc.args and exc.args[0] == 1045:
             msg = str(exc)
             if "using password: NO" in msg:
@@ -307,13 +307,19 @@ def get_db():
             raise RuntimeError(
                 "MySQL authentication failed: check DB_USER/DB_PASSWORD (or MYSQL_USER/MYSQL_PASSWORD)."
             ) from exc
+
+        # Network / name resolution errors — return 503 for request-time handling
         if exc.args and exc.args[0] in {2002, 2003}:
-            raise RuntimeError(
-                f"MySQL connection failed for host {DB_HOST}:{DB_PORT}. "
-                "Use a reachable cloud MySQL host in Render environment variables; "
-                "localhost/127.0.0.1 only works on the same machine as MySQL."
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    f"Database unreachable: {DB_HOST}:{DB_PORT}. "
+                    "Ensure DB_HOST/DB_PORT are correct and the DB is reachable from this host."
+                ),
             ) from exc
-        raise
+
+        # Any other operational error should return a 503 so endpoints can respond gracefully.
+        raise HTTPException(status_code=503, detail="Database unavailable") from exc
 
 
 def init_db() -> None:
